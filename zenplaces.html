@@ -3,169 +3,157 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CalmPath - Previsibilidade Sensorial</title>
+    <title>CalmPath - Real Time Sync</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAQE_OdDTC7u5Rp7QSsTyH3bSg7BdYBeVs&libraries=places"></script>
     <style>
         body { background: #020617; color: white; font-family: sans-serif; }
         .glass { background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); }
-        .btn-primary { background: linear-gradient(135deg, #3b82f6, #2563eb); transition: transform 0.2s; }
-        .btn-primary:active { transform: scale(0.95); }
-        .animate-fade-in { animation: fadeIn 0.5s ease-in; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .btn-primary { background: linear-gradient(135deg, #3b82f6, #2563eb); }
+        .badge-closed { background: #ef4444; color: white; padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: bold; }
     </style>
 </head>
 <body class="min-h-screen p-4 pb-20">
 
-    <header class="text-center py-8">
+    <header class="text-center py-6">
         <h1 class="text-4xl font-bold text-blue-400 tracking-tight">CalmPath</h1>
-        <p class="text-slate-400 text-sm mt-1 uppercase tracking-widest text-[10px]">Previsibilidade Sensorial Real</p>
+        <p class="text-slate-400 text-[10px] uppercase tracking-[0.2em]">Inteligência Sensorial em Tempo Real</p>
     </header>
 
-    <main class="max-w-md mx-auto space-y-6">
-        <section class="text-center px-4 animate-fade-in">
-            <h2 class="text-lg font-semibold text-slate-200">Encontre o melhor momento para sair.</h2>
-            <p class="text-slate-400 text-sm mt-2 leading-relaxed">
-                Validamos locais reais em todo o Brasil para ajudar você a evitar sobrecarga sensorial. 
-            </p>
-        </section>
+    <main class="max-w-md mx-auto space-y-4">
+        <div class="glass p-4 rounded-2xl shadow-2xl border border-blue-500/20">
+            <input id="search" type="text" placeholder="Ex: Cemitério, Shopping, Parque..." 
+                   class="w-full bg-slate-900 border-none rounded-xl p-4 text-white focus:ring-2 focus:ring-blue-500 text-lg">
+            <button onclick="buscarLocalReal()" class="w-full mt-3 btn-primary p-4 rounded-xl font-bold text-lg shadow-lg">Analisar Agora</button>
+        </div>
 
-        <div class="glass p-4 rounded-2xl shadow-2xl">
-            <input id="search" type="text" placeholder="Nome do local (Ex: Shopping Maxi)" 
-                   class="w-full bg-slate-800 border-none rounded-xl p-4 text-white focus:ring-2 focus:ring-blue-500 text-lg">
-            <button onclick="buscarLocal()" class="w-full mt-3 btn-primary p-4 rounded-xl font-bold text-lg">Analisar Ambiente</button>
+        <div id="resultado" class="hidden glass p-6 rounded-2xl animate-fade-in border-t-4 border-blue-500">
+            <div class="flex justify-between items-start mb-2">
+                <h2 id="nomeLocal" class="text-xl font-bold leading-tight pr-2"></h2>
+                <span id="badgeAberto" class=""></span>
+            </div>
+            <p id="enderecoLocal" class="text-slate-400 text-[11px] mb-4"></p>
             
-            <div id="contagemBuscas" class="text-center mt-3 text-[10px] text-slate-500 uppercase tracking-widest font-bold">
-                Buscas grátis: <span id="numBuscas">3</span> restantes
-            </div>
-        </div>
-
-        <div class="text-center">
-            <button onclick="abrirLogin()" class="text-blue-400 text-xs underline opacity-60 hover:opacity-100 font-bold">Já sou assinante / Validar Senha</button>
-        </div>
-
-        <div id="resultado" class="hidden glass p-6 rounded-2xl animate-fade-in border-l-4 border-blue-500">
-            <h2 id="nomeLocal" class="text-xl font-bold mb-1"></h2>
-            <p id="enderecoLocal" class="text-slate-400 text-[10px] mb-4 italic"></p>
-            <div id="statusCard" class="p-5 rounded-xl text-center">
-                <span class="text-xs uppercase tracking-widest opacity-80">Tendência de Movimento</span>
+            <div id="statusCard" class="p-6 rounded-2xl text-center mb-4 transition-all duration-700">
+                <span class="text-[10px] uppercase tracking-widest opacity-70">Status de Movimento</span>
                 <div id="statusTexto" class="text-3xl font-black my-1"></div>
-                <div id="periodoTexto" class="text-sm opacity-90 leading-tight"></div>
+                <div id="periodoTexto" class="text-xs opacity-90 italic"></div>
             </div>
-            <p class="text-[9px] text-slate-500 mt-6 text-center italic leading-tight uppercase tracking-tighter">
-                *Análise baseada em tendências históricas. Eventos locais podem alterar a realidade.
-            </p>
+
+            <div class="bg-blue-500/10 border border-blue-500/20 p-4 rounded-xl">
+                <h3 class="text-blue-300 text-xs font-bold uppercase mb-2 flex items-center">
+                    <span class="mr-2">🕒</span> Melhor horário para visitar:
+                </h3>
+                <p id="melhorHorario" class="text-slate-200 text-sm font-medium"></p>
+            </div>
         </div>
     </main>
 
-    <div id="paywall" class="hidden fixed inset-0 bg-slate-950/95 backdrop-blur-md z-50 flex items-center justify-center p-6 text-center">
-        <div class="glass p-8 rounded-3xl max-w-sm border border-blue-500/30">
-            <div class="text-5xl mb-4">🔒</div>
-            <h2 class="text-2xl font-bold mb-2">Limite Atingido</h2>
-            <p class="text-slate-400 mb-6 font-light">Para continuar acessando análises de locais reais, libere seu acesso ilimitado.</p>
-            <a href="https://pay.kiwify.com.br/UvkAxpZ" class="block w-full btn-primary p-4 rounded-xl font-bold mb-4 shadow-lg shadow-blue-500/20">LIBERAR POR R$ 9,90</a>
-            <button onclick="abrirLogin()" class="text-blue-400 text-sm underline">Já sou assinante</button>
-        </div>
-    </div>
-
-    <div id="loginModal" class="hidden fixed inset-0 bg-slate-950/90 z-[60] flex items-center justify-center p-6 text-center">
-        <div class="glass p-8 rounded-3xl w-full max-w-xs border border-white/10">
-            <h3 class="text-xl font-bold mb-4 text-blue-400">Acesso Assinante</h3>
-            <input id="senhaInput" type="password" placeholder="Sua senha" class="w-full bg-slate-800 p-3 rounded-lg mb-4 text-center text-white border-none focus:ring-2 focus:ring-blue-500">
-            <button onclick="validarSenha()" class="w-full btn-primary p-3 rounded-lg font-bold">Validar Senha</button>
-            <button onclick="document.getElementById('loginModal').classList.add('hidden')" class="mt-4 text-slate-500 text-[10px] uppercase">Fechar</button>
+    <div id="loginModal" class="hidden fixed inset-0 bg-slate-950/90 z-[60] flex items-center justify-center p-6">
+        <div class="glass p-8 rounded-3xl w-full max-w-xs text-center border border-white/10">
+            <input id="senhaInput" type="password" placeholder="Senha Assinante" class="w-full bg-slate-800 p-3 rounded-lg mb-4 text-center text-white">
+            <button onclick="validarSenha()" class="w-full btn-primary p-3 rounded-lg font-bold">Acessar</button>
         </div>
     </div>
 
     <script>
-        const SENHA_MESTRA = "Calmpath26"; 
+        const SENHA_MESTRA = "Calmpath26";
         let searches = parseInt(localStorage.getItem('calmpath_searches')) || 0;
         let isPremium = localStorage.getItem('calmpath_premium') === 'true';
 
-        atualizarUI();
-
-        function atualizarUI() {
-            if (isPremium) {
-                document.getElementById('contagemBuscas').innerHTML = "✨ ACESSO PREMIUM ATIVO";
-                document.getElementById('paywall').classList.add('hidden');
-            } else {
-                document.getElementById('numBuscas').innerText = Math.max(0, 3 - searches);
-            }
-        }
-
-        function abrirLogin() { document.getElementById('loginModal').classList.remove('hidden'); }
-
-        function validarSenha() {
-            if (document.getElementById('senhaInput').value === SENHA_MESTRA) {
-                localStorage.setItem('calmpath_premium', 'true');
-                isPremium = true;
-                alert("Acesso liberado!");
-                document.getElementById('loginModal').classList.add('hidden');
-                atualizarUI();
-            } else { alert("Senha incorreta."); }
-        }
-
-        function buscarLocal() {
+        function buscarLocalReal() {
             const query = document.getElementById('search').value;
-            if (!query || query.length < 3) return alert("Por favor, digite o nome de um local real.");
+            if (query.length < 3) return;
 
-            if (!isPremium && searches >= 3) {
-                document.getElementById('paywall').classList.remove('hidden');
-                return;
-            }
+            if (!isPremium && searches >= 3) { alert("Limite de testes atingido."); return; }
 
-            // INÍCIO DA VALIDAÇÃO REAL VIA GOOGLE PLACES
             const service = new google.maps.places.PlacesService(document.createElement('div'));
-            const request = { query: query, fields: ['name', 'formatted_address'] };
+            const request = { 
+                query: query, 
+                fields: ['name', 'formatted_address', 'opening_hours', 'types'] 
+            };
 
             service.findPlaceFromQuery(request, (results, status) => {
                 if (status === google.maps.places.PlacesServiceStatus.OK && results[0]) {
                     const local = results[0];
-
-                    if (!isPremium) {
-                        searches++;
-                        localStorage.setItem('calmpath_searches', searches);
-                        atualizarUI();
-                    }
-
-                    // Exibição dos dados validados
-                    document.getElementById('nomeLocal').innerText = local.name.toUpperCase();
-                    document.getElementById('enderecoLocal').innerText = local.formatted_address;
-                    
-                    const tendencia = getTendenciaBrasil();
-                    const resDiv = document.getElementById('resultado');
-                    resDiv.classList.remove('hidden');
-                    document.getElementById('statusCard').className = `p-5 rounded-xl text-center ${tendencia.cor} transition-all duration-500`;
-                    document.getElementById('statusTexto').innerText = tendencia.status;
-                    document.getElementById('periodoTexto').innerText = tendencia.desc;
-                    
-                    resDiv.scrollIntoView({ behavior: 'smooth' });
+                    processarResultado(local);
+                    if (!isPremium) { searches++; localStorage.setItem('calmpath_searches', searches); }
                 } else {
-                    alert("Local não identificado no mapa. Tente digitar o nome completo e a cidade.");
+                    alert("Local não encontrado.");
                 }
             });
         }
 
-        function getTendenciaBrasil() {
+        function processarResultado(local) {
             const agora = new Date();
-            const hora = agora.getHours();
-            const dia = agora.getDay();
+            const diaSemana = agora.getDay();
+            const horaAtual = agora.getHours();
+            const resDiv = document.getElementById('resultado');
+            
+            // 1. Verificar se está aberto pelo Google
+            const estaAberto = local.opening_hours ? local.opening_hours.isOpen() : true;
+            const badge = document.getElementById('badgeAberto');
+            
+            if (!estaAberto) {
+                badge.innerText = "FECHADO AGORA";
+                badge.className = "badge-closed";
+                updateStatus("Inativo", "bg-slate-800", "Este local encerrou as atividades por hoje.");
+            } else {
+                badge.innerText = "ABERTO";
+                badge.className = "bg-emerald-500 text-[10px] text-white px-2 py-0.5 rounded font-bold";
+                
+                // 2. Lógica de movimento baseada no tipo de local
+                const tipos = local.types || [];
+                const isComercial = tipos.includes('shopping_mall') || tipos.includes('department_store');
+                
+                let tendencia;
+                if (isComercial) {
+                    tendencia = getFluxoComercial(diaSemana, horaAtual);
+                } else {
+                    tendencia = getFluxoGeral(diaSemana, horaAtual);
+                }
+                updateStatus(tendencia.status, tendencia.cor, tendencia.desc);
+            }
 
-            if (hora >= 22 || hora < 8) return { status: "Acesso Restrito", cor: "bg-slate-700", desc: "Fora do horário comercial. Baixo movimento sensorial." };
-            if (dia === 0) { // Domingo
-                if (hora < 12) return { status: "Tranquilo", cor: "bg-emerald-600", desc: "Manhãs de domingo são ideais." };
-                if (hora >= 15 && hora <= 19) return { status: "Muito Agitado", cor: "bg-red-600", desc: "Pico de lazer nacional. Evite se possível." };
-                return { status: "Moderado", cor: "bg-amber-600", desc: "Fluxo constante." };
+            document.getElementById('nomeLocal').innerText = local.name.toUpperCase();
+            document.getElementById('enderecoLocal').innerText = local.formatted_address;
+            document.getElementById('melhorHorario').innerText = getMelhorHorarioDica(local.types);
+            resDiv.classList.remove('hidden');
+        }
+
+        function updateStatus(status, cor, desc) {
+            document.getElementById('statusCard').className = `p-6 rounded-2xl text-center mb-4 ${cor}`;
+            document.getElementById('statusTexto').innerText = status;
+            document.getElementById('periodoTexto').innerText = desc;
+        }
+
+        // Fluxo para Shoppings e Lojas
+        function getFluxoComercial(dia, hora) {
+            if (dia === 0 || dia === 6) { // Fim de semana
+                if (hora >= 14 && hora <= 20) return { status: "Muito Agitado", cor: "bg-red-600", desc: "Pico de fluxo intenso." };
+                return { status: "Moderado", cor: "bg-amber-600", desc: "Movimentação constante." };
             }
-            if (dia === 6) { // Sábado
-                if (hora < 11) return { status: "Calmo", cor: "bg-emerald-600", desc: "Recomendado para atividades rápidas." };
-                return { status: "Muito Agitado", cor: "bg-red-600", desc: "Grande fluxo de pessoas." };
+            if (hora >= 12 && hora <= 14 || hora >= 18) return { status: "Agitado", cor: "bg-orange-600", desc: "Horário de pico comercial." };
+            return { status: "Tranquilo", cor: "bg-emerald-600", desc: "Ambiente favorável agora." };
+        }
+
+        // Fluxo para Parques, Cemitérios, Órgãos Públicos
+        function getFluxoGeral(dia, hora) {
+            if (hora >= 10 && hora <= 16) return { status: "Moderado", cor: "bg-amber-600", desc: "Fluxo padrão para o horário." };
+            return { status: "Muito Calmo", cor: "bg-emerald-600", desc: "Momento de paz e baixo ruído." };
+        }
+
+        function getMelhorHorarioDica(tipos) {
+            if (tipos.includes('shopping_mall')) return "Dias úteis entre 10h e 11h30 ou após as 20h30.";
+            if (tipos.includes('cemetery') || tipos.includes('park')) return "Primeira hora da manhã (8h - 9h30).";
+            return "Terças e Quartas-feiras no período da manhã.";
+        }
+
+        function validarSenha() {
+            if (document.getElementById('senhaInput').value === SENHA_MESTRA) {
+                localStorage.setItem('calmpath_premium', 'true');
+                location.reload();
             }
-            if ((hora >= 12 && hora <= 14) || (hora >= 18 && hora <= 20)) {
-                return { status: "Horário de Pico", cor: "bg-red-600", desc: "Ambiente ruidoso e lotado." };
-            }
-            if (hora >= 8 && hora <= 11) return { status: "Ambiente Calmo", cor: "bg-emerald-600", desc: "Melhor momento para evitar sobrecarga." };
-            return { status: "Moderado", cor: "bg-amber-600", desc: "Movimentação média de dia útil." };
         }
     </script>
 </body>
