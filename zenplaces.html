@@ -3,96 +3,167 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CalmPath</title>
+    <title>CalmPath - Guia de Ambientes Calmos</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body { background: #020617; color: white; font-family: sans-serif; }
-        .glass { background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; }
-        .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.95); display: flex; align-items: center; justify-content: center; z-index: 100; padding: 20px; }
+        .glass { background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); }
+        .btn-primary { background: linear-gradient(135deg, #3b82f6, #2563eb); transition: transform 0.2s; }
+        .btn-primary:active { transform: scale(0.95); }
+        .animate-fade-in { animation: fadeIn 0.5s ease-in; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
-<body class="min-h-screen p-6">
+<body class="min-h-screen p-4 pb-20">
 
-    <div id="paywall" class="modal hidden">
-        <div class="glass p-8 max-w-sm text-center border-t-4 border-indigo-500">
-            <h3 class="text-2xl font-black mb-4">Sua jornada continua.</h3>
-            <p class="text-gray-400 text-sm mb-6 leading-relaxed">
-                Você utilizou suas consultas gratuitas. **Cadastre seu e-mail** para liberar o acesso ilimitado e garantir sua paz.
-            </p>
-            <form id="lead-form" class="space-y-4">
-                <input type="email" id="user-email" required placeholder="Seu melhor e-mail" 
-                       class="w-full p-4 rounded-2xl bg-gray-800 border border-gray-700 text-white outline-none focus:border-indigo-500">
-                <button type="submit" class="w-full py-4 rounded-2xl bg-indigo-600 hover:bg-indigo-500 font-bold transition-all text-white shadow-lg shadow-indigo-500/40">
-                    Liberar Ilimitado (R$ 9,90)
-                </button>
-            </form>
-            <p class="text-[9px] text-slate-500 mt-6 uppercase tracking-widest text-center">Pagamento seguro via Kiwify</p>
-        </div>
-    </div>
-
-    <header class="text-center pt-10">
-        <h1 class="text-5xl font-black mb-2 tracking-tighter">CalmPath</h1>
-        <p class="text-indigo-300 text-[10px] font-bold uppercase tracking-widest mb-8" id="counter">3 pesquisas restantes</p>
-        
-        <p class="max-w-md mx-auto text-gray-400 leading-relaxed mb-10">
-            Filtramos o movimento do mundo para mentes neurodivergentes e pessoas com fobia social. 
-            <span class="text-white font-bold">Planeje seu destino, evite o caos e recupere o controle da sua rotina.</span>
-        </p>
+    <header class="text-center py-8">
+        <h1 class="text-4xl font-bold text-blue-400 tracking-tight">CalmPath</h1>
+        <p class="text-slate-400 text-sm mt-1 uppercase tracking-widest">Previsibilidade Sensorial</p>
     </header>
 
-    <div class="max-w-md mx-auto">
-        <input id="pac-input" type="text" placeholder="Qual local quer validar hoje?" 
-               class="w-full p-5 rounded-3xl bg-gray-900 border border-gray-700 outline-none focus:border-indigo-500 shadow-2xl transition-all">
-        
-        <div id="result" class="hidden mt-8 glass p-6 border-l-4 border-emerald-500">
-            <h2 id="name" class="text-xl font-bold"></h2>
-            <p id="score" class="text-4xl font-black text-emerald-400 my-2"></p>
-            <p id="desc" class="text-sm text-gray-400 italic">Ambiente seguro e com baixo estímulo sensorial.</p>
+    <main class="max-w-md mx-auto space-y-6">
+        <section class="text-center px-4 animate-fade-in">
+            <h2 class="text-lg font-semibold text-slate-200">Encontre o melhor momento para sair.</h2>
+            <p class="text-slate-400 text-sm mt-2 leading-relaxed">
+                Analisamos tendências históricas de movimento para ajudar você a evitar aglomerações e barulho. 
+                <strong>Pesquise um local e planeje sua paz.</strong>
+            </p>
+        </section>
+
+        <div class="glass p-4 rounded-2xl shadow-2xl">
+            <input id="search" type="text" placeholder="Ex: Shopping Maxi, Parques..." 
+                   class="w-full bg-slate-800 border-none rounded-xl p-4 text-white focus:ring-2 focus:ring-blue-500 text-lg">
+            <button onclick="buscarLocal()" class="w-full mt-3 btn-primary p-4 rounded-xl font-bold text-lg">Analisar Ambiente</button>
+            
+            <div id="contagemBuscas" class="text-center mt-3 text-[10px] text-slate-500 uppercase tracking-widest">
+                Você tem <span id="numBuscas">3</span> buscas grátis restantes
+            </div>
+        </div>
+
+        <div class="text-center">
+            <button onclick="abrirLogin()" class="text-blue-400 text-xs underline opacity-60 hover:opacity-100">Já sou assinante / Validar Senha</button>
+        </div>
+
+        <div id="resultado" class="hidden glass p-6 rounded-2xl animate-fade-in border-l-4 border-blue-500">
+            <h2 id="nomeLocal" class="text-xl font-bold mb-3"></h2>
+            <div id="statusCard" class="p-5 rounded-xl text-center">
+                <span class="text-xs uppercase tracking-widest opacity-80">Tendência de Movimento</span>
+                <div id="statusTexto" class="text-3xl font-black my-1"></div>
+                <div id="periodoTexto" class="text-sm opacity-90"></div>
+            </div>
+            <p class="text-[10px] text-slate-500 mt-6 text-center italic leading-tight">
+                *Dados baseados em padrões históricos nacionais de comportamento. Eventos sazonais podem alterar a realidade.
+            </p>
+        </div>
+    </main>
+
+    <div id="paywall" class="hidden fixed inset-0 bg-slate-950/95 backdrop-blur-md z-50 flex items-center justify-center p-6 text-center">
+        <div class="glass p-8 rounded-3xl max-w-sm border border-blue-500/30">
+            <div class="text-5xl mb-4">🔒</div>
+            <h2 class="text-2xl font-bold mb-2">Limite Atingido</h2>
+            <p class="text-slate-400 mb-6 font-light">Para continuar acessando análises de qualquer lugar do Brasil, libere seu acesso ilimitado.</p>
+            <a href="https://pay.kiwify.com.br/UvkAxpZ" class="block w-full btn-primary p-4 rounded-xl font-bold mb-4 shadow-lg shadow-blue-500/20">LIBERAR POR R$ 9,90</a>
+            <button onclick="abrirLogin()" class="text-blue-400 text-sm underline">Já sou assinante</button>
         </div>
     </div>
 
-    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAQE_OdDTC7u5Rp7QSsTyH3bSg7BdYBeVs&libraries=places"></script>
+    <div id="loginModal" class="hidden fixed inset-0 bg-slate-950/90 z-[60] flex items-center justify-center p-6">
+        <div class="glass p-8 rounded-3xl w-full max-w-xs text-center border border-white/10">
+            <h3 class="text-xl font-bold mb-4 text-blue-400">Acesso Assinante</h3>
+            <p class="text-xs text-slate-400 mb-4 text-left">Digite a senha que você recebeu no e-mail de boas-vindas da Kiwify.</p>
+            <input id="senhaInput" type="password" placeholder="Sua senha aqui" class="w-full bg-slate-800 p-3 rounded-lg mb-4 text-center text-white border-none focus:ring-2 focus:ring-blue-500">
+            <button onclick="validarSenha()" class="w-full btn-primary p-3 rounded-lg font-bold">Validar Acesso</button>
+            <button onclick="document.getElementById('loginModal').classList.add('hidden')" class="mt-4 text-slate-500 text-xs uppercase tracking-tighter">Fechar</button>
+        </div>
+    </div>
 
     <script>
-        let searches = parseInt(localStorage.getItem('cp_usage')) || 0;
-        document.getElementById('counter').innerText = (3 - searches) + " pesquisas restantes";
+        // CONFIGURAÇÃO DA SENHA E ESTADO
+        const SENHA_MESTRA = "Calmpath26"; 
+        
+        let searches = parseInt(localStorage.getItem('calmpath_searches')) || 0;
+        let isPremium = localStorage.getItem('calmpath_premium') === 'true';
 
-        function init() {
-            const input = document.getElementById('pac-input');
-            const autocomplete = new google.maps.places.Autocomplete(input);
+        atualizarUI();
 
-            autocomplete.addListener('place_changed', () => {
+        function atualizarUI() {
+            if (isPremium) {
+                document.getElementById('contagemBuscas').innerHTML = "✨ ACESSO PREMIUM ATIVO";
+                document.getElementById('paywall').classList.add('hidden');
+            } else {
+                document.getElementById('numBuscas').innerText = Math.max(0, 3 - searches);
+            }
+        }
+
+        function abrirLogin() {
+            document.getElementById('loginModal').classList.remove('hidden');
+        }
+
+        function validarSenha() {
+            if (document.getElementById('senhaInput').value === SENHA_MESTRA) {
+                localStorage.setItem('calmpath_premium', 'true');
+                isPremium = true;
+                alert("Acesso liberado! Agora você tem buscas ilimitadas.");
+                document.getElementById('loginModal').classList.add('hidden');
+                atualizarUI();
+            } else {
+                alert("Senha inválida. Confira seu e-mail.");
+            }
+        }
+
+        function getTendenciaBrasil() {
+            const agora = new Date();
+            const hora = agora.getHours();
+            const dia = agora.getDay(); // 0:Dom, 6:Sáb
+
+            if (hora >= 22 || hora < 8) return { status: "Acesso Restrito", cor: "bg-slate-700", desc: "Local provavelmente fechado ou com baixa atividade noturna." };
+            
+            if (dia === 0) { // Domingo
+                if (hora < 12) return { status: "Tranquilo", cor: "bg-emerald-600", desc: "Manhãs de domingo são o melhor momento sensorial." };
+                if (hora >= 15 && hora <= 19) return { status: "Muito Agitado", cor: "bg-red-600", desc: "Pico histórico de lazer em todo o Brasil." };
+                return { status: "Moderado", cor: "bg-amber-600", desc: "Fluxo constante de pessoas." };
+            }
+
+            if (dia === 6) { // Sábado
+                if (hora < 11) return { status: "Calmo", cor: "bg-emerald-600", desc: "Início de movimento. Recomendado para compras rápidas." };
+                return { status: "Muito Agitado", cor: "bg-red-600", desc: "Grande fluxo de pessoas em áreas comerciais." };
+            }
+
+            // Segunda a Sexta
+            if ((hora >= 12 && hora <= 14) || (hora >= 18 && hora <= 20)) {
+                return { status: "Horário de Pico", cor: "bg-red-600", desc: "Momento de maior barulho e aglomeração." };
+            } else if (hora >= 8 && hora <= 11) {
+                return { status: "Ambiente Calmo", cor: "bg-emerald-600", desc: "Período ideal para evitar sobrecarga sensorial." };
+            } else {
+                return { status: "Moderado", cor: "bg-amber-600", desc: "Movimentação média típica de dia útil." };
+            }
+        }
+
+        function buscarLocal() {
+            const query = document.getElementById('search').value;
+            if (!query) return;
+
+            if (!isPremium) {
                 if (searches >= 3) {
                     document.getElementById('paywall').classList.remove('hidden');
                     return;
                 }
-
-                const place = autocomplete.getPlace();
-                if (!place.geometry) return;
-
-                // Contabiliza a busca
                 searches++;
-                localStorage.setItem('cp_usage', searches);
-                document.getElementById('counter').innerText = (3 - searches) + " pesquisas restantes";
+                localStorage.setItem('calmpath_searches', searches);
+                atualizarUI();
+            }
 
-                // Exibe resultado simulado
-                const res = document.getElementById('result');
-                res.classList.remove('hidden');
-                document.getElementById('name').innerText = place.name;
-                const score = Math.floor(Math.random() * 30) + 15;
-                document.getElementById('score').innerText = score + "% de fluxo";
-            });
+            document.getElementById('nomeLocal').innerText = query.toUpperCase();
+            const tendencia = getTendenciaBrasil();
+            
+            const resDiv = document.getElementById('resultado');
+            resDiv.classList.remove('hidden');
+            document.getElementById('statusCard').className = `p-5 rounded-xl text-center ${tendencia.cor} transition-all duration-500`;
+            document.getElementById('statusTexto').innerText = tendencia.status;
+            document.getElementById('periodoTexto').innerText = tendencia.desc;
+            
+            resDiv.scrollIntoView({ behavior: 'smooth' });
         }
-
-        // REDIRECIONAMENTO PARA SEU LINK DA KIWIFY
-        document.getElementById('lead-form').addEventListener('submit', function(e) {
-            e.preventDefault();
-            const email = document.getElementById('user-email').value;
-            console.log("Lead capturado:", email); // Aqui você pode salvar o lead futuramente
-            window.location.href = "https://pay.kiwify.com.br/UvkAxpZ"; 
-        });
-
-        google.maps.event.addDomListener(window, 'load', init);
     </script>
 </body>
 </html>
