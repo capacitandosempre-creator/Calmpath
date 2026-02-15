@@ -12,6 +12,8 @@
         .btn-primary { background: linear-gradient(135deg, #3b82f6, #2563eb); transition: transform 0.2s; }
         .badge-closed { background: #ef4444; color: white; padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: bold; }
         .badge-open { background: #10b981; color: white; padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: bold; }
+        .animate-fade-in { animation: fadeIn 0.5s ease-in; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body class="min-h-screen p-4 pb-20">
@@ -21,11 +23,24 @@
         <p class="text-slate-400 text-[10px] uppercase tracking-[0.2em]">Inteligência Sensorial Real</p>
     </header>
 
-    <main class="max-w-md mx-auto space-y-4">
+    <main class="max-w-md mx-auto space-y-6">
+        <section class="text-center px-4">
+            <h2 class="text-lg font-semibold text-slate-200">Planeje sua paz.</h2>
+            <p class="text-slate-400 text-sm mt-1">Analisamos locais reais para você evitar multidões.</p>
+        </section>
+
         <div class="glass p-4 rounded-2xl shadow-2xl border border-blue-500/20">
-            <input id="search" type="text" placeholder="Ex: Maxi Shopping, Parque da Cidade..." 
-                   class="w-full bg-slate-900 border-none rounded-xl p-4 text-white focus:ring-2 focus:ring-blue-500 text-lg">
+            <input id="search" type="text" placeholder="Ex: Shopping Maxi, Parque da Cidade..." 
+                   class="w-full bg-slate-900 border-none rounded-xl p-4 text-white focus:ring-2 focus:ring-blue-500 text-lg outline-none">
             <button onclick="buscarLocalReal()" class="w-full mt-3 btn-primary p-4 rounded-xl font-bold text-lg shadow-lg">Analisar Agora</button>
+            
+            <div id="contagemBuscas" class="text-center mt-3 text-[10px] text-slate-500 uppercase tracking-widest font-bold">
+                Buscas grátis: <span id="numBuscas">3</span> restantes
+            </div>
+        </div>
+
+        <div class="text-center">
+            <button onclick="abrirLogin()" class="text-blue-400 text-xs underline opacity-70 hover:opacity-100 font-bold">Já sou assinante / Validar Senha</button>
         </div>
 
         <div id="resultado" class="hidden glass p-6 rounded-2xl animate-fade-in border-t-4 border-blue-500">
@@ -51,10 +66,10 @@
     </main>
 
     <div id="paywall" class="hidden fixed inset-0 bg-slate-950/95 backdrop-blur-md z-50 flex items-center justify-center p-6 text-center">
-        <div class="glass p-8 rounded-3xl max-w-sm border border-blue-500/30 font-sans">
+        <div class="glass p-8 rounded-3xl max-w-sm border border-blue-500/30">
             <div class="text-5xl mb-4">🔒</div>
-            <h2 class="text-2xl font-bold mb-2">Limite de Teste</h2>
-            <p class="text-slate-400 mb-6 font-light">Para continuar analisando locais reais e horários de janela, libere seu acesso ilimitado.</p>
+            <h2 class="text-2xl font-bold mb-2 text-white">Limite atingido</h2>
+            <p class="text-slate-400 mb-6 font-light">Libere acesso ilimitado a locais reais e janelas de horários sensoriais.</p>
             <a href="https://pay.kiwify.com.br/UvkAxpZ" class="block w-full btn-primary p-4 rounded-xl font-bold mb-4 shadow-lg shadow-blue-500/20">LIBERAR POR R$ 9,90</a>
             <button onclick="abrirLogin()" class="text-blue-400 text-sm underline">Já sou assinante</button>
         </div>
@@ -62,8 +77,10 @@
 
     <div id="loginModal" class="hidden fixed inset-0 bg-slate-950/90 z-[60] flex items-center justify-center p-6">
         <div class="glass p-8 rounded-3xl w-full max-w-xs text-center border border-white/10">
-            <input id="senhaInput" type="password" placeholder="Sua Senha" class="w-full bg-slate-800 p-3 rounded-lg mb-4 text-center text-white outline-none">
+            <h3 class="text-xl font-bold mb-4 text-blue-400 text-white">Acesso Membro</h3>
+            <input id="senhaInput" type="password" placeholder="Sua Senha" class="w-full bg-slate-800 p-3 rounded-lg mb-4 text-center text-white outline-none focus:ring-2 focus:ring-blue-500">
             <button onclick="validarSenha()" class="w-full btn-primary p-3 rounded-lg font-bold">Validar</button>
+            <button onclick="document.getElementById('loginModal').classList.add('hidden')" class="mt-4 text-slate-500 text-[10px] uppercase">Cancelar</button>
         </div>
     </div>
 
@@ -72,18 +89,37 @@
         let searches = parseInt(localStorage.getItem('calmpath_searches')) || 0;
         let isPremium = localStorage.getItem('calmpath_premium') === 'true';
 
+        atualizarUI();
+
+        function atualizarUI() {
+            if (isPremium) {
+                document.getElementById('contagemBuscas').innerHTML = "✨ ACESSO PREMIUM ATIVO";
+                document.getElementById('paywall').classList.add('hidden');
+            } else {
+                document.getElementById('numBuscas').innerText = Math.max(0, 3 - searches);
+            }
+        }
+
         function abrirLogin() { document.getElementById('loginModal').classList.remove('hidden'); }
+        
         function validarSenha() {
             if (document.getElementById('senhaInput').value === SENHA_MESTRA) {
                 localStorage.setItem('calmpath_premium', 'true');
-                location.reload();
+                isPremium = true;
+                alert("Acesso liberado com sucesso!");
+                document.getElementById('loginModal').classList.add('hidden');
+                atualizarUI();
             } else { alert("Senha incorreta."); }
         }
 
         function buscarLocalReal() {
             const query = document.getElementById('search').value;
             if (query.length < 3) return alert("Digite o nome de um local.");
-            if (!isPremium && searches >= 3) { document.getElementById('paywall').classList.remove('hidden'); return; }
+            
+            if (!isPremium && searches >= 3) { 
+                document.getElementById('paywall').classList.remove('hidden'); 
+                return; 
+            }
 
             const service = new google.maps.places.PlacesService(document.createElement('div'));
             const request = { query: query, fields: ['name', 'formatted_address', 'opening_hours', 'types'] };
@@ -92,7 +128,12 @@
                 if (status === google.maps.places.PlacesServiceStatus.OK && results[0]) {
                     const local = results[0];
                     processarDados(local);
-                    if (!isPremium) { searches++; localStorage.setItem('calmpath_searches', searches); }
+                    
+                    if (!isPremium) { 
+                        searches++; 
+                        localStorage.setItem('calmpath_searches', searches); 
+                        atualizarUI();
+                    }
                 } else { alert("Local não encontrado."); }
             });
         }
@@ -101,11 +142,9 @@
             const agora = new Date();
             const hora = agora.getHours();
             const dia = agora.getDay();
-            
             const estaAberto = local.opening_hours ? local.opening_hours.isOpen() : true;
             const badge = document.getElementById('badgeStatus');
             
-            // Define Status e Cor
             let status, cor, desc;
             
             if (!estaAberto) {
@@ -133,14 +172,11 @@
                 }
             }
 
-            // Exibe na tela
             document.getElementById('nomeLocal').innerText = local.name.toUpperCase();
             document.getElementById('enderecoLocal').innerText = local.formatted_address;
             document.getElementById('statusTexto').innerText = status;
             document.getElementById('statusCard').className = `p-6 rounded-2xl text-center mb-4 ${cor}`;
             document.getElementById('periodoTexto').innerText = desc;
-            
-            // GERA A JANELA DE HORÁRIO (A correção aqui)
             document.getElementById('melhorHorarioTexto').innerText = gerarDicaHorario(local.types);
             
             document.getElementById('resultado').classList.remove('hidden');
