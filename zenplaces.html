@@ -9,20 +9,21 @@
     <style>
         body { background: #020617; color: white; font-family: sans-serif; }
         .glass { background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); }
-        .btn-primary { background: linear-gradient(135deg, #3b82f6, #2563eb); }
+        .btn-primary { background: linear-gradient(135deg, #3b82f6, #2563eb); transition: transform 0.2s; }
         .badge-closed { background: #ef4444; color: white; padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: bold; }
+        .badge-open { background: #10b981; color: white; padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: bold; }
     </style>
 </head>
 <body class="min-h-screen p-4 pb-20">
 
     <header class="text-center py-6">
         <h1 class="text-4xl font-bold text-blue-400 tracking-tight">CalmPath</h1>
-        <p class="text-slate-400 text-[10px] uppercase tracking-[0.2em]">Inteligência Sensorial em Tempo Real</p>
+        <p class="text-slate-400 text-[10px] uppercase tracking-[0.2em]">Inteligência Sensorial Real</p>
     </header>
 
     <main class="max-w-md mx-auto space-y-4">
         <div class="glass p-4 rounded-2xl shadow-2xl border border-blue-500/20">
-            <input id="search" type="text" placeholder="Ex: Cemitério, Shopping, Parque..." 
+            <input id="search" type="text" placeholder="Ex: Maxi Shopping, Parque da Cidade..." 
                    class="w-full bg-slate-900 border-none rounded-xl p-4 text-white focus:ring-2 focus:ring-blue-500 text-lg">
             <button onclick="buscarLocalReal()" class="w-full mt-3 btn-primary p-4 rounded-xl font-bold text-lg shadow-lg">Analisar Agora</button>
         </div>
@@ -30,29 +31,39 @@
         <div id="resultado" class="hidden glass p-6 rounded-2xl animate-fade-in border-t-4 border-blue-500">
             <div class="flex justify-between items-start mb-2">
                 <h2 id="nomeLocal" class="text-xl font-bold leading-tight pr-2"></h2>
-                <span id="badgeAberto" class=""></span>
+                <span id="badgeStatus" class=""></span>
             </div>
             <p id="enderecoLocal" class="text-slate-400 text-[11px] mb-4"></p>
             
             <div id="statusCard" class="p-6 rounded-2xl text-center mb-4 transition-all duration-700">
                 <span class="text-[10px] uppercase tracking-widest opacity-70">Status de Movimento</span>
-                <div id="statusTexto" class="text-3xl font-black my-1"></div>
+                <div id="statusTexto" class="text-3xl font-black my-1 text-white"></div>
                 <div id="periodoTexto" class="text-xs opacity-90 italic"></div>
             </div>
 
             <div class="bg-blue-500/10 border border-blue-500/20 p-4 rounded-xl">
-                <h3 class="text-blue-300 text-xs font-bold uppercase mb-2 flex items-center">
-                    <span class="mr-2">🕒</span> Melhor horário para visitar:
+                <h3 class="text-blue-300 text-[10px] font-bold uppercase mb-2 flex items-center tracking-widest">
+                    <span class="mr-2">🕒</span> Melhor janela de horário:
                 </h3>
-                <p id="melhorHorario" class="text-slate-200 text-sm font-medium"></p>
+                <p id="melhorHorarioTexto" class="text-slate-200 text-sm font-medium leading-relaxed"></p>
             </div>
         </div>
     </main>
 
+    <div id="paywall" class="hidden fixed inset-0 bg-slate-950/95 backdrop-blur-md z-50 flex items-center justify-center p-6 text-center">
+        <div class="glass p-8 rounded-3xl max-w-sm border border-blue-500/30 font-sans">
+            <div class="text-5xl mb-4">🔒</div>
+            <h2 class="text-2xl font-bold mb-2">Limite de Teste</h2>
+            <p class="text-slate-400 mb-6 font-light">Para continuar analisando locais reais e horários de janela, libere seu acesso ilimitado.</p>
+            <a href="https://pay.kiwify.com.br/UvkAxpZ" class="block w-full btn-primary p-4 rounded-xl font-bold mb-4 shadow-lg shadow-blue-500/20">LIBERAR POR R$ 9,90</a>
+            <button onclick="abrirLogin()" class="text-blue-400 text-sm underline">Já sou assinante</button>
+        </div>
+    </div>
+
     <div id="loginModal" class="hidden fixed inset-0 bg-slate-950/90 z-[60] flex items-center justify-center p-6">
         <div class="glass p-8 rounded-3xl w-full max-w-xs text-center border border-white/10">
-            <input id="senhaInput" type="password" placeholder="Senha Assinante" class="w-full bg-slate-800 p-3 rounded-lg mb-4 text-center text-white">
-            <button onclick="validarSenha()" class="w-full btn-primary p-3 rounded-lg font-bold">Acessar</button>
+            <input id="senhaInput" type="password" placeholder="Sua Senha" class="w-full bg-slate-800 p-3 rounded-lg mb-4 text-center text-white outline-none">
+            <button onclick="validarSenha()" class="w-full btn-primary p-3 rounded-lg font-bold">Validar</button>
         </div>
     </div>
 
@@ -61,99 +72,86 @@
         let searches = parseInt(localStorage.getItem('calmpath_searches')) || 0;
         let isPremium = localStorage.getItem('calmpath_premium') === 'true';
 
-        function buscarLocalReal() {
-            const query = document.getElementById('search').value;
-            if (query.length < 3) return;
-
-            if (!isPremium && searches >= 3) { alert("Limite de testes atingido."); return; }
-
-            const service = new google.maps.places.PlacesService(document.createElement('div'));
-            const request = { 
-                query: query, 
-                fields: ['name', 'formatted_address', 'opening_hours', 'types'] 
-            };
-
-            service.findPlaceFromQuery(request, (results, status) => {
-                if (status === google.maps.places.PlacesServiceStatus.OK && results[0]) {
-                    const local = results[0];
-                    processarResultado(local);
-                    if (!isPremium) { searches++; localStorage.setItem('calmpath_searches', searches); }
-                } else {
-                    alert("Local não encontrado.");
-                }
-            });
-        }
-
-        function processarResultado(local) {
-            const agora = new Date();
-            const diaSemana = agora.getDay();
-            const horaAtual = agora.getHours();
-            const resDiv = document.getElementById('resultado');
-            
-            // 1. Verificar se está aberto pelo Google
-            const estaAberto = local.opening_hours ? local.opening_hours.isOpen() : true;
-            const badge = document.getElementById('badgeAberto');
-            
-            if (!estaAberto) {
-                badge.innerText = "FECHADO AGORA";
-                badge.className = "badge-closed";
-                updateStatus("Inativo", "bg-slate-800", "Este local encerrou as atividades por hoje.");
-            } else {
-                badge.innerText = "ABERTO";
-                badge.className = "bg-emerald-500 text-[10px] text-white px-2 py-0.5 rounded font-bold";
-                
-                // 2. Lógica de movimento baseada no tipo de local
-                const tipos = local.types || [];
-                const isComercial = tipos.includes('shopping_mall') || tipos.includes('department_store');
-                
-                let tendencia;
-                if (isComercial) {
-                    tendencia = getFluxoComercial(diaSemana, horaAtual);
-                } else {
-                    tendencia = getFluxoGeral(diaSemana, horaAtual);
-                }
-                updateStatus(tendencia.status, tendencia.cor, tendencia.desc);
-            }
-
-            document.getElementById('nomeLocal').innerText = local.name.toUpperCase();
-            document.getElementById('enderecoLocal').innerText = local.formatted_address;
-            document.getElementById('melhorHorario').innerText = getMelhorHorarioDica(local.types);
-            resDiv.classList.remove('hidden');
-        }
-
-        function updateStatus(status, cor, desc) {
-            document.getElementById('statusCard').className = `p-6 rounded-2xl text-center mb-4 ${cor}`;
-            document.getElementById('statusTexto').innerText = status;
-            document.getElementById('periodoTexto').innerText = desc;
-        }
-
-        // Fluxo para Shoppings e Lojas
-        function getFluxoComercial(dia, hora) {
-            if (dia === 0 || dia === 6) { // Fim de semana
-                if (hora >= 14 && hora <= 20) return { status: "Muito Agitado", cor: "bg-red-600", desc: "Pico de fluxo intenso." };
-                return { status: "Moderado", cor: "bg-amber-600", desc: "Movimentação constante." };
-            }
-            if (hora >= 12 && hora <= 14 || hora >= 18) return { status: "Agitado", cor: "bg-orange-600", desc: "Horário de pico comercial." };
-            return { status: "Tranquilo", cor: "bg-emerald-600", desc: "Ambiente favorável agora." };
-        }
-
-        // Fluxo para Parques, Cemitérios, Órgãos Públicos
-        function getFluxoGeral(dia, hora) {
-            if (hora >= 10 && hora <= 16) return { status: "Moderado", cor: "bg-amber-600", desc: "Fluxo padrão para o horário." };
-            return { status: "Muito Calmo", cor: "bg-emerald-600", desc: "Momento de paz e baixo ruído." };
-        }
-
-        function getMelhorHorarioDica(tipos) {
-            if (tipos.includes('shopping_mall')) return "Dias úteis entre 10h e 11h30 ou após as 20h30.";
-            if (tipos.includes('cemetery') || tipos.includes('park')) return "Primeira hora da manhã (8h - 9h30).";
-            return "Terças e Quartas-feiras no período da manhã.";
-        }
-
+        function abrirLogin() { document.getElementById('loginModal').classList.remove('hidden'); }
         function validarSenha() {
             if (document.getElementById('senhaInput').value === SENHA_MESTRA) {
                 localStorage.setItem('calmpath_premium', 'true');
                 location.reload();
+            } else { alert("Senha incorreta."); }
+        }
+
+        function buscarLocalReal() {
+            const query = document.getElementById('search').value;
+            if (query.length < 3) return alert("Digite o nome de um local.");
+            if (!isPremium && searches >= 3) { document.getElementById('paywall').classList.remove('hidden'); return; }
+
+            const service = new google.maps.places.PlacesService(document.createElement('div'));
+            const request = { query: query, fields: ['name', 'formatted_address', 'opening_hours', 'types'] };
+
+            service.findPlaceFromQuery(request, (results, status) => {
+                if (status === google.maps.places.PlacesServiceStatus.OK && results[0]) {
+                    const local = results[0];
+                    processarDados(local);
+                    if (!isPremium) { searches++; localStorage.setItem('calmpath_searches', searches); }
+                } else { alert("Local não encontrado."); }
+            });
+        }
+
+        function processarDados(local) {
+            const agora = new Date();
+            const hora = agora.getHours();
+            const dia = agora.getDay();
+            
+            const estaAberto = local.opening_hours ? local.opening_hours.isOpen() : true;
+            const badge = document.getElementById('badgeStatus');
+            
+            // Define Status e Cor
+            let status, cor, desc;
+            
+            if (!estaAberto) {
+                badge.innerText = "FECHADO AGORA"; badge.className = "badge-closed";
+                status = "Inativo"; cor = "bg-slate-800"; desc = "Este local está fechado no momento.";
+            } else {
+                badge.innerText = "ABERTO"; badge.className = "badge-open";
+                const tipos = local.types || [];
+                const isComercial = tipos.includes('shopping_mall') || tipos.includes('store');
+                
+                if (isComercial) {
+                    if ((dia === 0 || dia === 6) && (hora >= 14 && hora <= 20)) {
+                        status = "Muito Agitado"; cor = "bg-red-600"; desc = "Pico de fluxo intenso.";
+                    } else if (hora >= 12 && hora <= 14) {
+                        status = "Agitado"; cor = "bg-orange-600"; desc = "Horário de almoço/pico.";
+                    } else {
+                        status = "Tranquilo"; cor = "bg-emerald-600"; desc = "Movimentação baixa no momento.";
+                    }
+                } else {
+                    if (hora >= 10 && hora <= 16) {
+                        status = "Moderado"; cor = "bg-amber-600"; desc = "Fluxo normal para o local.";
+                    } else {
+                        status = "Muito Calmo"; cor = "bg-emerald-600"; desc = "Excelente momento sensorial.";
+                    }
+                }
             }
+
+            // Exibe na tela
+            document.getElementById('nomeLocal').innerText = local.name.toUpperCase();
+            document.getElementById('enderecoLocal').innerText = local.formatted_address;
+            document.getElementById('statusTexto').innerText = status;
+            document.getElementById('statusCard').className = `p-6 rounded-2xl text-center mb-4 ${cor}`;
+            document.getElementById('periodoTexto').innerText = desc;
+            
+            // GERA A JANELA DE HORÁRIO (A correção aqui)
+            document.getElementById('melhorHorarioTexto').innerText = gerarDicaHorario(local.types);
+            
+            document.getElementById('resultado').classList.remove('hidden');
+            document.getElementById('resultado').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function gerarDicaHorario(tipos) {
+            if (tipos.includes('shopping_mall')) return "Dias úteis entre 10h e 11h30 ou após as 20h30. Evite domingos à tarde.";
+            if (tipos.includes('park') || tipos.includes('cemetery')) return "Primeira hora da manhã (8h às 10h) ou final de tarde em dias de semana.";
+            if (tipos.includes('hospital') || tipos.includes('drugstore')) return "Madrugada ou entre 14h e 16h (após o almoço).";
+            return "Período da manhã, logo após a abertura, costuma ser o mais silencioso.";
         }
     </script>
 </body>
