@@ -3,8 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CalmPath - Guia de Ambientes Calmos</title>
+    <title>CalmPath - Previsibilidade Sensorial</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAQE_OdDTC7u5Rp7QSsTyH3bSg7BdYBeVs&libraries=places"></script>
     <style>
         body { background: #020617; color: white; font-family: sans-serif; }
         .glass { background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); }
@@ -18,41 +19,41 @@
 
     <header class="text-center py-8">
         <h1 class="text-4xl font-bold text-blue-400 tracking-tight">CalmPath</h1>
-        <p class="text-slate-400 text-sm mt-1 uppercase tracking-widest">Previsibilidade Sensorial</p>
+        <p class="text-slate-400 text-sm mt-1 uppercase tracking-widest text-[10px]">Previsibilidade Sensorial Real</p>
     </header>
 
     <main class="max-w-md mx-auto space-y-6">
         <section class="text-center px-4 animate-fade-in">
             <h2 class="text-lg font-semibold text-slate-200">Encontre o melhor momento para sair.</h2>
             <p class="text-slate-400 text-sm mt-2 leading-relaxed">
-                Analisamos tendências históricas de movimento para ajudar você a evitar aglomerações e barulho. 
-                <strong>Pesquise um local e planeje sua paz.</strong>
+                Validamos locais reais em todo o Brasil para ajudar você a evitar sobrecarga sensorial. 
             </p>
         </section>
 
         <div class="glass p-4 rounded-2xl shadow-2xl">
-            <input id="search" type="text" placeholder="Ex: Shopping Maxi, Parques..." 
+            <input id="search" type="text" placeholder="Nome do local (Ex: Shopping Maxi)" 
                    class="w-full bg-slate-800 border-none rounded-xl p-4 text-white focus:ring-2 focus:ring-blue-500 text-lg">
             <button onclick="buscarLocal()" class="w-full mt-3 btn-primary p-4 rounded-xl font-bold text-lg">Analisar Ambiente</button>
             
-            <div id="contagemBuscas" class="text-center mt-3 text-[10px] text-slate-500 uppercase tracking-widest">
-                Você tem <span id="numBuscas">3</span> buscas grátis restantes
+            <div id="contagemBuscas" class="text-center mt-3 text-[10px] text-slate-500 uppercase tracking-widest font-bold">
+                Buscas grátis: <span id="numBuscas">3</span> restantes
             </div>
         </div>
 
         <div class="text-center">
-            <button onclick="abrirLogin()" class="text-blue-400 text-xs underline opacity-60 hover:opacity-100">Já sou assinante / Validar Senha</button>
+            <button onclick="abrirLogin()" class="text-blue-400 text-xs underline opacity-60 hover:opacity-100 font-bold">Já sou assinante / Validar Senha</button>
         </div>
 
         <div id="resultado" class="hidden glass p-6 rounded-2xl animate-fade-in border-l-4 border-blue-500">
-            <h2 id="nomeLocal" class="text-xl font-bold mb-3"></h2>
+            <h2 id="nomeLocal" class="text-xl font-bold mb-1"></h2>
+            <p id="enderecoLocal" class="text-slate-400 text-[10px] mb-4 italic"></p>
             <div id="statusCard" class="p-5 rounded-xl text-center">
                 <span class="text-xs uppercase tracking-widest opacity-80">Tendência de Movimento</span>
                 <div id="statusTexto" class="text-3xl font-black my-1"></div>
-                <div id="periodoTexto" class="text-sm opacity-90"></div>
+                <div id="periodoTexto" class="text-sm opacity-90 leading-tight"></div>
             </div>
-            <p class="text-[10px] text-slate-500 mt-6 text-center italic leading-tight">
-                *Dados baseados em padrões históricos nacionais de comportamento. Eventos sazonais podem alterar a realidade.
+            <p class="text-[9px] text-slate-500 mt-6 text-center italic leading-tight uppercase tracking-tighter">
+                *Análise baseada em tendências históricas. Eventos locais podem alterar a realidade.
             </p>
         </div>
     </main>
@@ -61,26 +62,23 @@
         <div class="glass p-8 rounded-3xl max-w-sm border border-blue-500/30">
             <div class="text-5xl mb-4">🔒</div>
             <h2 class="text-2xl font-bold mb-2">Limite Atingido</h2>
-            <p class="text-slate-400 mb-6 font-light">Para continuar acessando análises de qualquer lugar do Brasil, libere seu acesso ilimitado.</p>
+            <p class="text-slate-400 mb-6 font-light">Para continuar acessando análises de locais reais, libere seu acesso ilimitado.</p>
             <a href="https://pay.kiwify.com.br/UvkAxpZ" class="block w-full btn-primary p-4 rounded-xl font-bold mb-4 shadow-lg shadow-blue-500/20">LIBERAR POR R$ 9,90</a>
             <button onclick="abrirLogin()" class="text-blue-400 text-sm underline">Já sou assinante</button>
         </div>
     </div>
 
-    <div id="loginModal" class="hidden fixed inset-0 bg-slate-950/90 z-[60] flex items-center justify-center p-6">
-        <div class="glass p-8 rounded-3xl w-full max-w-xs text-center border border-white/10">
+    <div id="loginModal" class="hidden fixed inset-0 bg-slate-950/90 z-[60] flex items-center justify-center p-6 text-center">
+        <div class="glass p-8 rounded-3xl w-full max-w-xs border border-white/10">
             <h3 class="text-xl font-bold mb-4 text-blue-400">Acesso Assinante</h3>
-            <p class="text-xs text-slate-400 mb-4 text-left">Digite a senha que você recebeu no e-mail de boas-vindas da Kiwify.</p>
-            <input id="senhaInput" type="password" placeholder="Sua senha aqui" class="w-full bg-slate-800 p-3 rounded-lg mb-4 text-center text-white border-none focus:ring-2 focus:ring-blue-500">
-            <button onclick="validarSenha()" class="w-full btn-primary p-3 rounded-lg font-bold">Validar Acesso</button>
-            <button onclick="document.getElementById('loginModal').classList.add('hidden')" class="mt-4 text-slate-500 text-xs uppercase tracking-tighter">Fechar</button>
+            <input id="senhaInput" type="password" placeholder="Sua senha" class="w-full bg-slate-800 p-3 rounded-lg mb-4 text-center text-white border-none focus:ring-2 focus:ring-blue-500">
+            <button onclick="validarSenha()" class="w-full btn-primary p-3 rounded-lg font-bold">Validar Senha</button>
+            <button onclick="document.getElementById('loginModal').classList.add('hidden')" class="mt-4 text-slate-500 text-[10px] uppercase">Fechar</button>
         </div>
     </div>
 
     <script>
-        // CONFIGURAÇÃO DA SENHA E ESTADO
         const SENHA_MESTRA = "Calmpath26"; 
-        
         let searches = parseInt(localStorage.getItem('calmpath_searches')) || 0;
         let isPremium = localStorage.getItem('calmpath_premium') === 'true';
 
@@ -95,74 +93,79 @@
             }
         }
 
-        function abrirLogin() {
-            document.getElementById('loginModal').classList.remove('hidden');
-        }
+        function abrirLogin() { document.getElementById('loginModal').classList.remove('hidden'); }
 
         function validarSenha() {
             if (document.getElementById('senhaInput').value === SENHA_MESTRA) {
                 localStorage.setItem('calmpath_premium', 'true');
                 isPremium = true;
-                alert("Acesso liberado! Agora você tem buscas ilimitadas.");
+                alert("Acesso liberado!");
                 document.getElementById('loginModal').classList.add('hidden');
                 atualizarUI();
-            } else {
-                alert("Senha inválida. Confira seu e-mail.");
+            } else { alert("Senha incorreta."); }
+        }
+
+        function buscarLocal() {
+            const query = document.getElementById('search').value;
+            if (!query || query.length < 3) return alert("Por favor, digite o nome de um local real.");
+
+            if (!isPremium && searches >= 3) {
+                document.getElementById('paywall').classList.remove('hidden');
+                return;
             }
+
+            // INÍCIO DA VALIDAÇÃO REAL VIA GOOGLE PLACES
+            const service = new google.maps.places.PlacesService(document.createElement('div'));
+            const request = { query: query, fields: ['name', 'formatted_address'] };
+
+            service.findPlaceFromQuery(request, (results, status) => {
+                if (status === google.maps.places.PlacesServiceStatus.OK && results[0]) {
+                    const local = results[0];
+
+                    if (!isPremium) {
+                        searches++;
+                        localStorage.setItem('calmpath_searches', searches);
+                        atualizarUI();
+                    }
+
+                    // Exibição dos dados validados
+                    document.getElementById('nomeLocal').innerText = local.name.toUpperCase();
+                    document.getElementById('enderecoLocal').innerText = local.formatted_address;
+                    
+                    const tendencia = getTendenciaBrasil();
+                    const resDiv = document.getElementById('resultado');
+                    resDiv.classList.remove('hidden');
+                    document.getElementById('statusCard').className = `p-5 rounded-xl text-center ${tendencia.cor} transition-all duration-500`;
+                    document.getElementById('statusTexto').innerText = tendencia.status;
+                    document.getElementById('periodoTexto').innerText = tendencia.desc;
+                    
+                    resDiv.scrollIntoView({ behavior: 'smooth' });
+                } else {
+                    alert("Local não identificado no mapa. Tente digitar o nome completo e a cidade.");
+                }
+            });
         }
 
         function getTendenciaBrasil() {
             const agora = new Date();
             const hora = agora.getHours();
-            const dia = agora.getDay(); // 0:Dom, 6:Sáb
+            const dia = agora.getDay();
 
-            if (hora >= 22 || hora < 8) return { status: "Acesso Restrito", cor: "bg-slate-700", desc: "Local provavelmente fechado ou com baixa atividade noturna." };
-            
+            if (hora >= 22 || hora < 8) return { status: "Acesso Restrito", cor: "bg-slate-700", desc: "Fora do horário comercial. Baixo movimento sensorial." };
             if (dia === 0) { // Domingo
-                if (hora < 12) return { status: "Tranquilo", cor: "bg-emerald-600", desc: "Manhãs de domingo são o melhor momento sensorial." };
-                if (hora >= 15 && hora <= 19) return { status: "Muito Agitado", cor: "bg-red-600", desc: "Pico histórico de lazer em todo o Brasil." };
-                return { status: "Moderado", cor: "bg-amber-600", desc: "Fluxo constante de pessoas." };
+                if (hora < 12) return { status: "Tranquilo", cor: "bg-emerald-600", desc: "Manhãs de domingo são ideais." };
+                if (hora >= 15 && hora <= 19) return { status: "Muito Agitado", cor: "bg-red-600", desc: "Pico de lazer nacional. Evite se possível." };
+                return { status: "Moderado", cor: "bg-amber-600", desc: "Fluxo constante." };
             }
-
             if (dia === 6) { // Sábado
-                if (hora < 11) return { status: "Calmo", cor: "bg-emerald-600", desc: "Início de movimento. Recomendado para compras rápidas." };
-                return { status: "Muito Agitado", cor: "bg-red-600", desc: "Grande fluxo de pessoas em áreas comerciais." };
+                if (hora < 11) return { status: "Calmo", cor: "bg-emerald-600", desc: "Recomendado para atividades rápidas." };
+                return { status: "Muito Agitado", cor: "bg-red-600", desc: "Grande fluxo de pessoas." };
             }
-
-            // Segunda a Sexta
             if ((hora >= 12 && hora <= 14) || (hora >= 18 && hora <= 20)) {
-                return { status: "Horário de Pico", cor: "bg-red-600", desc: "Momento de maior barulho e aglomeração." };
-            } else if (hora >= 8 && hora <= 11) {
-                return { status: "Ambiente Calmo", cor: "bg-emerald-600", desc: "Período ideal para evitar sobrecarga sensorial." };
-            } else {
-                return { status: "Moderado", cor: "bg-amber-600", desc: "Movimentação média típica de dia útil." };
+                return { status: "Horário de Pico", cor: "bg-red-600", desc: "Ambiente ruidoso e lotado." };
             }
-        }
-
-        function buscarLocal() {
-            const query = document.getElementById('search').value;
-            if (!query) return;
-
-            if (!isPremium) {
-                if (searches >= 3) {
-                    document.getElementById('paywall').classList.remove('hidden');
-                    return;
-                }
-                searches++;
-                localStorage.setItem('calmpath_searches', searches);
-                atualizarUI();
-            }
-
-            document.getElementById('nomeLocal').innerText = query.toUpperCase();
-            const tendencia = getTendenciaBrasil();
-            
-            const resDiv = document.getElementById('resultado');
-            resDiv.classList.remove('hidden');
-            document.getElementById('statusCard').className = `p-5 rounded-xl text-center ${tendencia.cor} transition-all duration-500`;
-            document.getElementById('statusTexto').innerText = tendencia.status;
-            document.getElementById('periodoTexto').innerText = tendencia.desc;
-            
-            resDiv.scrollIntoView({ behavior: 'smooth' });
+            if (hora >= 8 && hora <= 11) return { status: "Ambiente Calmo", cor: "bg-emerald-600", desc: "Melhor momento para evitar sobrecarga." };
+            return { status: "Moderado", cor: "bg-amber-600", desc: "Movimentação média de dia útil." };
         }
     </script>
 </body>
