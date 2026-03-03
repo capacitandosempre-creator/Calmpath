@@ -3,110 +3,57 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CalmPath</title>
+<title>CalmPath 3.0</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
 body{
-    margin:0;
-    font-family:'Segoe UI',sans-serif;
-    background:radial-gradient(circle at top,#0f172a,#020617);
-    color:#e2e8f0;
+margin:0;
+font-family:'Segoe UI',sans-serif;
+background:radial-gradient(circle at top,#0f172a,#020617);
+color:#e2e8f0;
 }
-
-.container{
-    max-width:900px;
-    margin:auto;
-    padding:20px;
-}
-
-h1{
-    text-align:center;
-    font-size:32px;
-    background:linear-gradient(90deg,#38bdf8,#6366f1);
-    -webkit-background-clip:text;
-    -webkit-text-fill-color:transparent;
-}
-
+.container{max-width:1000px;margin:auto;padding:20px;}
+h1{text-align:center;font-size:34px;
+background:linear-gradient(90deg,#38bdf8,#6366f1);
+-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
 .card{
-    background:rgba(30,41,59,0.6);
-    backdrop-filter:blur(15px);
-    border-radius:20px;
-    padding:20px;
-    margin-top:20px;
-    box-shadow:0 0 25px rgba(0,0,0,0.4);
+background:rgba(30,41,59,0.6);
+backdrop-filter:blur(15px);
+border-radius:20px;
+padding:20px;
+margin-top:20px;
+box-shadow:0 0 30px rgba(0,0,0,0.4);
 }
-
 input,button{
-    width:100%;
-    padding:12px;
-    margin-top:10px;
-    border-radius:12px;
-    border:none;
-    font-size:15px;
+width:100%;padding:12px;margin-top:10px;
+border-radius:12px;border:none;font-size:15px;
 }
-
-input{
-    background:#1e293b;
-    color:white;
-}
-
+input{background:#1e293b;color:white;}
 button{
-    background:linear-gradient(90deg,#6366f1,#3b82f6);
-    color:white;
-    cursor:pointer;
-    transition:0.3s;
+background:linear-gradient(90deg,#6366f1,#3b82f6);
+color:white;cursor:pointer;transition:0.3s;
 }
-
-button:hover{
-    transform:scale(1.02);
-}
-
-.gauge{
-    width:240px;
-    height:240px;
-    margin:auto;
-    position:relative;
-}
-
-svg{ transform:rotate(-90deg); }
-
-circle{
-    fill:none;
-    stroke-width:18;
-    stroke-linecap:round;
-}
-
+button:hover{transform:scale(1.02);}
+.gauge{width:240px;height:240px;margin:auto;position:relative;}
+svg{transform:rotate(-90deg);}
+circle{fill:none;stroke-width:18;stroke-linecap:round;}
 #progressCircle{
-    stroke:#22d3ee;
-    stroke-dasharray:565;
-    stroke-dashoffset:565;
-    transition:1s ease;
+stroke:#22c55e;
+stroke-dasharray:565;
+stroke-dashoffset:565;
+transition:1s ease;
 }
-
 .centerText{
-    position:absolute;
-    top:50%;
-    left:50%;
-    transform:translate(-50%,-50%);
-    text-align:center;
+position:absolute;top:50%;left:50%;
+transform:translate(-50%,-50%);
+text-align:center;
 }
-
-.centerText h2{
-    font-size:42px;
-    margin:0;
-}
-
-.status{
-    text-align:center;
-    margin-top:15px;
-    font-weight:500;
-}
-
-.small{
-    font-size:13px;
-    opacity:0.7;
-    text-align:center;
-}
+.centerText h2{font-size:42px;margin:0;}
+.status{text-align:center;margin-top:15px;font-weight:500;}
+.row{display:flex;gap:20px;flex-wrap:wrap;}
+.col{flex:1;min-width:300px;}
+.feedback button{margin-top:8px;}
 </style>
 </head>
 
@@ -116,12 +63,13 @@ circle{
 <h1>CalmPath</h1>
 
 <div class="card">
-<input type="text" id="localInput" placeholder="Digite o local (ex: Shopping Iguatemi)">
-<button onclick="buscarLocal()">Analisar Ambiente</button>
+<input type="text" id="localInput" placeholder="Digite o local">
+<button onclick="buscarLocal()">Analisar em tempo real</button>
 </div>
 
-<div id="dashboard" class="card" style="display:none;">
+<div id="dashboard" style="display:none;">
 
+<div class="card">
 <div class="gauge">
 <svg width="240" height="240">
 <circle cx="120" cy="120" r="90" stroke="#1e293b"/>
@@ -132,115 +80,164 @@ circle{
 <p>Índice de Desconforto</p>
 </div>
 </div>
-
 <div class="status" id="statusTexto"></div>
-<p class="small" id="explicacao"></p>
+<p id="explicacao" style="text-align:center;opacity:0.7;"></p>
+</div>
+
+<div class="row">
+<div class="card col">
+<h3>Previsão próximas horas</h3>
+<canvas id="forecastChart"></canvas>
+</div>
+
+<div class="card col">
+<h3>Histórico do Local</h3>
+<canvas id="historyChart"></canvas>
+
+<h3 style="margin-top:20px;">Avaliação da Comunidade</h3>
+<div class="feedback">
+<button onclick="avaliar(20)">🙂 Confortável</button>
+<button onclick="avaliar(50)">😐 Moderado</button>
+<button onclick="avaliar(85)">😣 Difícil</button>
+</div>
+<p id="mediaComunitaria" style="margin-top:10px;"></p>
+</div>
+</div>
 
 </div>
 </div>
 
 <script>
 
-const circ = 2 * Math.PI * 90;
+const circ=2*Math.PI*90;
+let localAtual="";
+let historyChart,forecastChart;
 
 async function buscarLocal(){
 
-    const nome = document.getElementById("localInput").value.trim();
-    if(!nome) return;
+const nome=document.getElementById("localInput").value.trim();
+if(!nome) return;
 
-    document.getElementById("statusTexto").innerText="Buscando local...";
-    document.getElementById("dashboard").style.display="block";
+localAtual=nome;
+document.getElementById("dashboard").style.display="block";
+document.getElementById("statusTexto").innerText="Buscando dados...";
 
-    try{
+const geo=await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(nome)}`);
+const geoData=await geo.json();
+if(!geoData.length){document.getElementById("statusTexto").innerText="Local não encontrado.";return;}
 
-        // 1️⃣ Buscar coordenadas pelo nome
-        const geoRes = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(nome)}`);
-        const geoData = await geoRes.json();
+const lat=geoData[0].lat;
+const lon=geoData[0].lon;
 
-        if(!geoData.length){
-            document.getElementById("statusTexto").innerText="Local não encontrado.";
-            return;
-        }
+const clima=await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&hourly=temperature_2m,windspeed_10m&current_weather=true`);
+const climaData=await clima.json();
 
-        const lat = geoData[0].lat;
-        const lon = geoData[0].lon;
-        const tipo = geoData[0].type;
-
-        // 2️⃣ Buscar clima em tempo real
-        const climaRes = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`);
-        const climaData = await climaRes.json();
-
-        const temp = climaData.current_weather.temperature;
-        const vento = climaData.current_weather.windspeed;
-
-        calcularIndice(tipo,temp,vento);
-
-    }catch(e){
-        document.getElementById("statusTexto").innerText="Erro ao buscar dados.";
-    }
+calcularIndice(climaData);
 }
 
-function calcularIndice(tipo,temp,vento){
+function calcularIndice(climaData){
 
-    let indice = 30;
+const hora=new Date().getHours();
+const dia=new Date().getDay();
 
-    const hora = new Date().getHours();
-    const dia = new Date().getDay();
+let indice=30;
 
-    // horário de pico
-    if(hora>=12 && hora<=14) indice+=20;
-    if(hora>=17 && hora<=19) indice+=25;
-    if(dia==0 || dia==6) indice+=15;
+const temp=climaData.current_weather.temperature;
+const vento=climaData.current_weather.windspeed;
 
-    // tipo do local
-    if(tipo.includes("shop") || tipo.includes("mall")) indice+=25;
-    if(tipo.includes("restaurant")) indice+=15;
-    if(tipo.includes("park")) indice-=10;
-    if(tipo.includes("cemetery")) indice-=20;
+if(hora>=12&&hora<=14) indice+=20;
+if(hora>=17&&hora<=19) indice+=25;
+if(dia==0||dia==6) indice+=15;
+if(temp>30) indice+=15;
+if(vento>25) indice+=10;
 
-    // clima
-    if(temp>30) indice+=15;
-    if(vento>20) indice+=10;
+const comunidade=getMediaComunidade();
+indice+=comunidade*0.3;
 
-    indice=Math.max(0,Math.min(100,indice));
+indice=Math.max(0,Math.min(100,indice));
 
-    atualizarUI(indice,tipo,temp,vento);
+atualizarUI(indice,temp,vento);
+salvarHistorico(indice);
+gerarPrevisao(climaData);
+renderHistorico();
 }
 
-function atualizarUI(indice,tipo,temp,vento){
+function atualizarUI(indice,temp,vento){
 
-    document.getElementById("indiceValor").innerText=indice;
+document.getElementById("indiceValor").innerText=Math.round(indice);
+const offset=circ-(indice/100)*circ;
+const circle=document.getElementById("progressCircle");
+circle.style.strokeDashoffset=offset;
 
-    const offset = circ - (indice/100)*circ;
-    const circle = document.getElementById("progressCircle");
-    circle.style.strokeDashoffset = offset;
+let cor="#22c55e";
+let status="Ambiente confortável";
 
-    let cor="#22c55e";
-    let status="Ambiente confortável";
+if(indice>40){cor="#eab308";status="Atenção moderada";}
+if(indice>65){cor="#f97316";status="Planejamento recomendado";}
+if(indice>85){cor="#ef4444";status="Alto risco sensorial";}
 
-    if(indice>40){
-        cor="#eab308";
-        status="Atenção moderada";
-    }
-    if(indice>65){
-        cor="#f97316";
-        status="Planejamento recomendado";
-    }
-    if(indice>80){
-        cor="#ef4444";
-        status="Alto risco sensorial";
-    }
+circle.style.stroke=cor;
+circle.style.filter=`drop-shadow(0 0 15px ${cor})`;
 
-    circle.style.stroke = cor;
-    circle.style.filter = `drop-shadow(0 0 15px ${cor})`;
+document.getElementById("statusTexto").innerText=status;
+document.getElementById("explicacao").innerText=`Temperatura ${temp}°C • Vento ${vento} km/h`;
+}
 
-    document.getElementById("statusTexto").innerText=status;
+function salvarHistorico(valor){
+let hist=JSON.parse(localStorage.getItem("hist_"+localAtual))||[];
+hist.push({data:new Date().toLocaleTimeString(),valor});
+localStorage.setItem("hist_"+localAtual,JSON.stringify(hist));
+}
 
-    document.getElementById("explicacao").innerText =
-        `Tipo: ${tipo} | Temperatura: ${temp}°C | Vento: ${vento} km/h`;
+function renderHistorico(){
+let hist=JSON.parse(localStorage.getItem("hist_"+localAtual))||[];
+const labels=hist.map(h=>h.data);
+const valores=hist.map(h=>h.valor);
+
+if(historyChart) historyChart.destroy();
+
+historyChart=new Chart(document.getElementById("historyChart"),{
+type:'line',
+data:{labels,datasets:[{label:'Índice',data:valores,borderColor:'#6366f1'}]},
+options:{responsive:true}
+});
+
+const media=getMediaComunidade();
+document.getElementById("mediaComunitaria").innerText="Média comunidade: "+Math.round(media);
+}
+
+function gerarPrevisao(climaData){
+const temps=climaData.hourly.temperature_2m.slice(0,6);
+const labels=["+1h","+2h","+3h","+4h","+5h","+6h"];
+
+const previsao=temps.map(t=>{
+let base=30;
+if(t>30) base+=15;
+return base;
+});
+
+if(forecastChart) forecastChart.destroy();
+
+forecastChart=new Chart(document.getElementById("forecastChart"),{
+type:'line',
+data:{labels,datasets:[{label:'Previsão',data:previsao,borderColor:'#22d3ee'}]},
+options:{responsive:true}
+});
+}
+
+function avaliar(valor){
+let dados=JSON.parse(localStorage.getItem("com_"+localAtual))||[];
+dados.push(valor);
+localStorage.setItem("com_"+localAtual,JSON.stringify(dados));
+renderHistorico();
+}
+
+function getMediaComunidade(){
+let dados=JSON.parse(localStorage.getItem("com_"+localAtual))||[];
+if(!dados.length) return 0;
+return dados.reduce((a,b)=>a+b)/dados.length;
 }
 
 </script>
-
 </body>
 </html>
