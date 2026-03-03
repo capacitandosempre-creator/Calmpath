@@ -9,12 +9,13 @@
 body{
     margin:0;
     font-family: 'Segoe UI', sans-serif;
-    background:#0f172a;
-    color:#f1f5f9;
+    background: radial-gradient(circle at top, #0f172a, #020617);
+    color:#e2e8f0;
+    overflow-x:hidden;
 }
 
 .container{
-    max-width:700px;
+    max-width:900px;
     margin:auto;
     padding:20px;
 }
@@ -22,82 +23,129 @@ body{
 h1{
     text-align:center;
     font-weight:600;
-    margin-bottom:10px;
+    font-size:32px;
+    letter-spacing:1px;
+    background: linear-gradient(90deg,#38bdf8,#6366f1);
+    -webkit-background-clip:text;
+    -webkit-text-fill-color:transparent;
 }
 
 .card{
-    background:#1e293b;
+    background: rgba(30,41,59,0.6);
+    backdrop-filter: blur(12px);
+    border:1px solid rgba(255,255,255,0.05);
+    border-radius:20px;
     padding:20px;
-    border-radius:16px;
     margin-top:20px;
-    box-shadow:0 0 20px rgba(0,0,0,0.3);
+    box-shadow: 0 0 30px rgba(0,0,0,0.4);
+    transition:0.4s;
+}
+
+.card:hover{
+    transform: translateY(-3px);
 }
 
 input,button{
     width:100%;
     padding:12px;
-    border-radius:10px;
+    border-radius:12px;
     border:none;
     margin-top:10px;
     font-size:15px;
 }
 
 input{
-    background:#334155;
+    background:#1e293b;
     color:white;
 }
 
 button{
-    background:#3b82f6;
+    background:linear-gradient(90deg,#6366f1,#3b82f6);
     color:white;
     cursor:pointer;
     transition:0.3s;
 }
 
 button:hover{
-    background:#2563eb;
+    opacity:0.85;
 }
 
-.progress{
-    height:18px;
-    border-radius:10px;
-    margin-top:10px;
-    background:#334155;
+/* Medidor circular */
+.gauge{
+    width:220px;
+    height:220px;
+    margin:auto;
+    position:relative;
+}
+
+svg{
+    transform:rotate(-90deg);
+}
+
+circle{
+    fill:none;
+    stroke-width:15;
+    stroke-linecap:round;
+}
+
+#progressCircle{
+    stroke:#22d3ee;
+    stroke-dasharray:565;
+    stroke-dashoffset:565;
+    transition:1s ease;
+    filter: drop-shadow(0 0 12px #22d3ee);
+}
+
+.centerText{
+    position:absolute;
+    top:50%;
+    left:50%;
+    transform:translate(-50%,-50%);
+    text-align:center;
+}
+
+.centerText h2{
+    font-size:38px;
+    margin:0;
+}
+
+.dimensions{
+    display:grid;
+    grid-template-columns:1fr 1fr 1fr;
+    gap:15px;
+    margin-top:20px;
+}
+
+.dimension{
+    background:#0f172a;
+    padding:15px;
+    border-radius:15px;
+    text-align:center;
+}
+
+.bar{
+    height:8px;
+    border-radius:8px;
+    background:#1e293b;
+    margin-top:8px;
     overflow:hidden;
 }
 
-.progress-bar{
+.bar-inner{
     height:100%;
     width:0%;
-    transition:0.5s;
+    background:#38bdf8;
+    transition:0.6s;
 }
 
-.status{
-    font-size:18px;
-    margin-top:10px;
-    font-weight:600;
+.community input{
+    margin-top:6px;
 }
 
 .small{
     font-size:13px;
     opacity:0.7;
-}
-
-.checklist label{
-    display:block;
     margin-top:8px;
-}
-
-input[type="checkbox"]{
-    width:auto;
-    margin-right:8px;
-}
-
-.footer{
-    text-align:center;
-    font-size:12px;
-    opacity:0.5;
-    margin-top:30px;
 }
 </style>
 </head>
@@ -107,165 +155,153 @@ input[type="checkbox"]{
 <div class="container">
 
 <h1>CalmPath</h1>
-<p style="text-align:center;opacity:0.7;">Planejamento sensorial antes de sair</p>
 
 <div class="card">
-<input type="text" id="localInput" placeholder="Digite o nome do local">
-<button onclick="buscarLocal()">Analisar Local</button>
+<input type="text" id="localInput" placeholder="Digite o local (ex: Shopping Central)">
+<button onclick="buscarLocal()">Analisar Ambiente</button>
 </div>
 
-<div id="resultado" class="card" style="display:none;">
+<div id="dashboard" style="display:none;">
 
-<h3 id="nomeLocal"></h3>
+<div class="card">
 
-<div class="progress">
-<div id="barra" class="progress-bar"></div>
+<div class="gauge">
+<svg width="220" height="220">
+<circle cx="110" cy="110" r="90" stroke="#1e293b"/>
+<circle id="progressCircle" cx="110" cy="110" r="90"/>
+</svg>
+<div class="centerText">
+<h2 id="indiceValor">0</h2>
+<p>Índice Sensorial</p>
+</div>
 </div>
 
-<div class="status" id="statusTexto"></div>
-<p class="small" id="explicacao"></p>
-<p class="small" id="fonteDados"></p>
+<p id="statusTexto" style="text-align:center;margin-top:15px;"></p>
+<p id="fonteTexto" class="small" style="text-align:center;"></p>
+
+<div class="dimensions">
+<div class="dimension">
+🔊 Ruído
+<div class="bar"><div id="barRuido" class="bar-inner"></div></div>
+</div>
+<div class="dimension">
+💡 Luz
+<div class="bar"><div id="barLuz" class="bar-inner"></div></div>
+</div>
+<div class="dimension">
+👥 Movimento
+<div class="bar"><div id="barMov" class="bar-inner"></div></div>
+</div>
+</div>
 
 </div>
 
-<div id="checklistCard" class="card" style="display:none;">
-<h3>Plano rápido antes de sair</h3>
-
-<div class="checklist">
-<label><input type="checkbox" id="c1">Levar abafador / fone</label>
-<label><input type="checkbox" id="c2">Definir tempo máximo</label>
-<label><input type="checkbox" id="c3">Planejar saída estratégica</label>
-<label><input type="checkbox" id="c4">Ter plano alternativo</label>
+<div class="card community">
+<h3>Atualizar pela Comunidade</h3>
+<label>Ruído (0-100)</label>
+<input type="number" id="cRuido" min="0" max="100">
+<label>Luz (0-100)</label>
+<input type="number" id="cLuz" min="0" max="100">
+<label>Movimento (0-100)</label>
+<input type="number" id="cMov" min="0" max="100">
+<button onclick="enviarComunitario()">Enviar Atualização</button>
+<p id="confirma" class="small"></p>
 </div>
 
-</div>
-
-<div id="historicoCard" class="card" style="display:none;">
-<h3>Seu histórico</h3>
-<p id="historicoTexto" class="small"></p>
-</div>
-
-<div class="footer">
-CalmPath • Organização sensorial familiar
 </div>
 
 </div>
 
 <script>
 
-let localAtual = "";
+let localAtual="";
+const circ = 2*Math.PI*90;
 
 function buscarLocal(){
-    const nome = document.getElementById("localInput").value.trim();
+    const nome=document.getElementById("localInput").value.trim();
     if(!nome) return;
-
-    localAtual = nome;
-    document.getElementById("nomeLocal").innerText = nome;
-    document.getElementById("resultado").style.display="block";
-    document.getElementById("checklistCard").style.display="block";
-    document.getElementById("historicoCard").style.display="block";
-
-    carregarChecklist();
+    localAtual=nome;
+    document.getElementById("dashboard").style.display="block";
     calcularIndice();
-    carregarHistorico();
 }
 
 function calcularIndice(){
 
-    const hora = new Date().getHours();
-    const dia = new Date().getDay();
+    const hora=new Date().getHours();
+    const dia=new Date().getDay();
 
-    let base = 30;
+    let ruido=30;
+    let luz=30;
+    let movimento=30;
 
-    if(hora >=12 && hora <=14) base += 25;
-    if(hora >=17 && hora <=19) base += 30;
-    if(dia==6 || dia==0) base += 20;
-    if(hora >=21) base -= 15;
+    if(hora>=12 && hora<=14){ ruido+=25; movimento+=30; }
+    if(hora>=17 && hora<=19){ movimento+=35; }
+    if(dia==6 || dia==0){ movimento+=20; }
 
-    let comunidade = JSON.parse(localStorage.getItem("com_"+localAtual));
-    let fonte="Baseado em previsão inteligente";
+    let comunidade=JSON.parse(localStorage.getItem("com_"+localAtual));
+    let fonte="Previsão inteligente";
 
     if(comunidade){
-        const minutos = (Date.now() - comunidade.timestamp)/60000;
-        if(minutos < 60){
-            base = Math.round((base + comunidade.indice)/2);
+        let minutos=(Date.now()-comunidade.timestamp)/60000;
+        if(minutos<60){
+            ruido=Math.round((ruido+comunidade.ruido)/2);
+            luz=Math.round((luz+comunidade.luz)/2);
+            movimento=Math.round((movimento+comunidade.mov)/2);
             fonte="Atualizado pela comunidade há "+Math.round(minutos)+" min";
         }
     }
 
-    if(base < 0) base = 0;
-    if(base > 100) base = 100;
+    ruido=Math.min(100,ruido);
+    luz=Math.min(100,luz);
+    movimento=Math.min(100,movimento);
 
-    atualizarUI(base);
-    document.getElementById("fonteDados").innerText = fonte;
+    let indice=Math.round((ruido+luz+movimento)/3);
 
-    salvarHistorico(base);
+    atualizarUI(indice,ruido,luz,movimento);
+    document.getElementById("fonteTexto").innerText=fonte;
 }
 
-function atualizarUI(valor){
+function atualizarUI(indice,ruido,luz,movimento){
 
-    const barra = document.getElementById("barra");
-    barra.style.width = valor+"%";
+    document.getElementById("indiceValor").innerText=indice;
 
-    let cor="";
-    let texto="";
-    let explicacao="";
+    let offset=circ-(indice/100)*circ;
+    document.getElementById("progressCircle").style.strokeDashoffset=offset;
 
-    if(valor <=30){
-        cor="#22c55e";
-        texto="🟢 Ideal para sair";
-        explicacao="Ambiente tende a ser confortável para a maioria dos perfis sensoriais.";
-    }
-    else if(valor <=60){
-        cor="#eab308";
-        texto="🟡 Exige preparação leve";
-        explicacao="Pode haver estímulos moderados. Planejamento simples recomendado.";
-    }
-    else if(valor <=80){
-        cor="#f97316";
-        texto="🟠 Planejamento recomendado";
-        explicacao="Alta chance de estímulos intensos. Considere estratégias de regulação.";
-    }
-    else{
-        cor="#ef4444";
-        texto="🔴 Alto risco sensorial";
-        explicacao="Ambiente pode gerar sobrecarga. Avalie horário alternativo.";
-    }
+    let cor="#22d3ee";
+    if(indice>60) cor="#f97316";
+    if(indice>80) cor="#ef4444";
 
-    barra.style.background=cor;
-    document.getElementById("statusTexto").innerText="Índice: "+valor+"/100 — "+texto;
-    document.getElementById("explicacao").innerText=explicacao;
+    document.getElementById("progressCircle").style.stroke=cor;
+    document.getElementById("progressCircle").style.filter="drop-shadow(0 0 15px "+cor+")";
+
+    document.getElementById("barRuido").style.width=ruido+"%";
+    document.getElementById("barLuz").style.width=luz+"%";
+    document.getElementById("barMov").style.width=movimento+"%";
+
+    let status="Ambiente equilibrado";
+    if(indice>60) status="Planejamento recomendado";
+    if(indice>80) status="Alto risco sensorial";
+
+    document.getElementById("statusTexto").innerText=status;
 }
 
-function salvarHistorico(indice){
+function enviarComunitario(){
+
+    if(!localAtual) return;
+
+    const ruido=Number(document.getElementById("cRuido").value)||0;
+    const luz=Number(document.getElementById("cLuz").value)||0;
+    const mov=Number(document.getElementById("cMov").value)||0;
+
     const dados={
-        indice:indice,
-        data:new Date().toLocaleString()
+        ruido,luz,mov,
+        timestamp:Date.now()
     };
-    localStorage.setItem("hist_"+localAtual,JSON.stringify(dados));
-}
 
-function carregarHistorico(){
-    const dados=JSON.parse(localStorage.getItem("hist_"+localAtual));
-    if(dados){
-        document.getElementById("historicoTexto").innerText=
-        "Última consulta: "+dados.data+
-        " | Índice registrado: "+dados.indice+"/100";
-    }else{
-        document.getElementById("historicoTexto").innerText=
-        "Você ainda não consultou este local antes.";
-    }
-}
-
-function carregarChecklist(){
-    ["c1","c2","c3","c4"].forEach(id=>{
-        const salvo=localStorage.getItem(localAtual+"_"+id);
-        document.getElementById(id).checked = salvo==="true";
-
-        document.getElementById(id).onchange=function(){
-            localStorage.setItem(localAtual+"_"+id,this.checked);
-        }
-    });
+    localStorage.setItem("com_"+localAtual,JSON.stringify(dados));
+    document.getElementById("confirma").innerText="Atualização enviada com sucesso.";
+    calcularIndice();
 }
 
 </script>
