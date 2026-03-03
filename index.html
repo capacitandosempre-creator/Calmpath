@@ -3,241 +3,235 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CalmPath 3.0</title>
+<title>CalmPath - Experiência Sensorial Avançada</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
 <style>
-body{
-margin:0;
-font-family:'Segoe UI',sans-serif;
-background:radial-gradient(circle at top,#0f172a,#020617);
-color:#e2e8f0;
+/* === Global === */
+body {
+  margin:0;
+  font-family:'Segoe UI',sans-serif;
+  background: radial-gradient(circle at top,#0f172a,#020617);
+  color:#e2e8f0;
 }
-.container{max-width:1000px;margin:auto;padding:20px;}
-h1{text-align:center;font-size:34px;
-background:linear-gradient(90deg,#38bdf8,#6366f1);
--webkit-background-clip:text;-webkit-text-fill-color:transparent;}
-.card{
-background:rgba(30,41,59,0.6);
-backdrop-filter:blur(15px);
-border-radius:20px;
-padding:20px;
-margin-top:20px;
-box-shadow:0 0 30px rgba(0,0,0,0.4);
+.container { max-width:1000px;margin:auto;padding:20px; }
+h1 {
+  text-align:center;font-size:40px;
+  background:linear-gradient(90deg,#38bdf8,#6366f1);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
 }
-input,button{
-width:100%;padding:12px;margin-top:10px;
-border-radius:12px;border:none;font-size:15px;
+.card {
+  background:rgba(30,41,59,0.7);
+  backdrop-filter:blur(15px);
+  border-radius:25px;
+  padding:25px;
+  margin-top:20px;
+  box-shadow:0 0 40px rgba(0,0,0,0.5);
+  transition: transform 0.3s;
 }
-input{background:#1e293b;color:white;}
-button{
-background:linear-gradient(90deg,#6366f1,#3b82f6);
-color:white;cursor:pointer;transition:0.3s;
+.card:hover { transform:scale(1.02); }
+input,button {
+  width:100%;padding:14px;margin-top:10px;
+  border-radius:14px;border:none;font-size:16px;
 }
-button:hover{transform:scale(1.02);}
-.gauge{width:240px;height:240px;margin:auto;position:relative;}
-svg{transform:rotate(-90deg);}
-circle{fill:none;stroke-width:18;stroke-linecap:round;}
-#progressCircle{
-stroke:#22c55e;
-stroke-dasharray:565;
-stroke-dashoffset:565;
-transition:1s ease;
+input { background:#1e293b;color:white; }
+button {
+  background:linear-gradient(90deg,#6366f1,#3b82f6);
+  color:white;cursor:pointer;transition:0.3s;
 }
-.centerText{
-position:absolute;top:50%;left:50%;
-transform:translate(-50%,-50%);
-text-align:center;
+button:hover { transform:scale(1.05); }
+/* === Gauge === */
+.gauge { width:260px;height:260px;margin:auto;position:relative; }
+svg { transform:rotate(-90deg); }
+circle { fill:none;stroke-width:18;stroke-linecap:round; transition:1s; }
+#progressCircle { stroke:#22c55e; stroke-dasharray:565; stroke-dashoffset:565; filter:drop-shadow(0 0 15px #22c55e); }
+.centerText {
+  position:absolute;top:50%;left:50%;
+  transform:translate(-50%,-50%);
+  text-align:center;
 }
-.centerText h2{font-size:42px;margin:0;}
-.status{text-align:center;margin-top:15px;font-weight:500;}
-.row{display:flex;gap:20px;flex-wrap:wrap;}
-.col{flex:1;min-width:300px;}
-.feedback button{margin-top:8px;}
+.centerText h2 { font-size:48px;margin:0; animation:fadeInUp 1s ease forwards; }
+.centerText p { font-size:14px; opacity:0.7; }
+/* === Animations === */
+@keyframes fadeInUp { from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);} }
+/* === Rows === */
+.row { display:flex;gap:20px;flex-wrap:wrap; margin-top:20px; }
+.col { flex:1;min-width:320px; }
+/* === Feedback Buttons === */
+.feedback button { margin-top:8px; background:#3b82f6; color:white; border-radius:12px; transition:0.2s; }
+.feedback button:hover { transform:scale(1.05); background:#6366f1; }
+/* === Heatmap style === */
+.heatmap { width:100%;height:200px;background:linear-gradient(90deg, #22c55e, #facc15, #f97316, #ef4444); border-radius:14px; position:relative; margin-top:10px; overflow:hidden; }
+.heat-indicator { height:100%; width:0%; background:rgba(255,255,255,0.2); border-radius:14px; position:absolute; top:0; left:0; transition:width 1s; }
 </style>
 </head>
-
 <body>
+
 <div class="container">
 
 <h1>CalmPath</h1>
 
 <div class="card">
-<input type="text" id="localInput" placeholder="Digite o local">
-<button onclick="buscarLocal()">Analisar em tempo real</button>
+  <input type="text" id="localInput" placeholder="Digite o local (ex: Shopping, Parque)">
+  <button onclick="analisarLocal()">Analisar experiência sensorial</button>
 </div>
 
 <div id="dashboard" style="display:none;">
 
-<div class="card">
-<div class="gauge">
-<svg width="240" height="240">
-<circle cx="120" cy="120" r="90" stroke="#1e293b"/>
-<circle id="progressCircle" cx="120" cy="120" r="90"/>
-</svg>
-<div class="centerText">
-<h2 id="indiceValor">0</h2>
-<p>Índice de Desconforto</p>
-</div>
-</div>
-<div class="status" id="statusTexto"></div>
-<p id="explicacao" style="text-align:center;opacity:0.7;"></p>
-</div>
+  <!-- Índice Sensorial -->
+  <div class="card">
+    <div class="gauge">
+      <svg width="260" height="260">
+        <circle cx="130" cy="130" r="90" stroke="#1e293b"/>
+        <circle id="progressCircle" cx="130" cy="130" r="90"/>
+      </svg>
+      <div class="centerText">
+        <h2 id="indiceValor">0</h2>
+        <p>Índice de Desconforto</p>
+      </div>
+    </div>
+    <div class="status" id="statusTexto"></div>
+    <div class="heatmap">
+      <div id="heatIndicator" class="heat-indicator"></div>
+    </div>
+    <p id="explicacao" style="text-align:center;opacity:0.8;margin-top:5px;"></p>
+  </div>
 
-<div class="row">
-<div class="card col">
-<h3>Previsão próximas horas</h3>
-<canvas id="forecastChart"></canvas>
-</div>
+  <div class="row">
+    <!-- Previsão -->
+    <div class="card col">
+      <h3>Previsão próximas horas</h3>
+      <canvas id="forecastChart"></canvas>
+    </div>
 
-<div class="card col">
-<h3>Histórico do Local</h3>
-<canvas id="historyChart"></canvas>
+    <!-- Histórico + Comunidade -->
+    <div class="card col">
+      <h3>Histórico do Local</h3>
+      <canvas id="historyChart"></canvas>
 
-<h3 style="margin-top:20px;">Avaliação da Comunidade</h3>
-<div class="feedback">
-<button onclick="avaliar(20)">🙂 Confortável</button>
-<button onclick="avaliar(50)">😐 Moderado</button>
-<button onclick="avaliar(85)">😣 Difícil</button>
-</div>
-<p id="mediaComunitaria" style="margin-top:10px;"></p>
-</div>
-</div>
-
+      <h3 style="margin-top:20px;">Avaliação da Comunidade</h3>
+      <div class="feedback">
+        <button onclick="avaliarLocal(20)">🙂 Confortável</button>
+        <button onclick="avaliarLocal(50)">😐 Moderado</button>
+        <button onclick="avaliarLocal(85)">😣 Difícil</button>
+      </div>
+      <p id="mediaComunitaria" style="margin-top:10px;"></p>
+    </div>
+  </div>
 </div>
 </div>
 
 <script>
-
 const circ=2*Math.PI*90;
 let localAtual="";
-let historyChart,forecastChart;
+let historyChart, forecastChart;
 
-async function buscarLocal(){
+// Função principal
+async function analisarLocal(){
+  const nome=document.getElementById("localInput").value.trim();
+  if(!nome) return;
+  localAtual=nome;
+  document.getElementById("dashboard").style.display="block";
+  document.getElementById("statusTexto").innerText="Calculando experiência...";
 
-const nome=document.getElementById("localInput").value.trim();
-if(!nome) return;
+  // Simulação de IA
+  const indice=gerarIndiceIA(nome);
+  const explicacao=gerarExplicacaoIA(nome,indice);
 
-localAtual=nome;
-document.getElementById("dashboard").style.display="block";
-document.getElementById("statusTexto").innerText="Buscando dados...";
-
-const geo=await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(nome)}`);
-const geoData=await geo.json();
-if(!geoData.length){document.getElementById("statusTexto").innerText="Local não encontrado.";return;}
-
-const lat=geoData[0].lat;
-const lon=geoData[0].lon;
-
-const clima=await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&hourly=temperature_2m,windspeed_10m&current_weather=true`);
-const climaData=await clima.json();
-
-calcularIndice(climaData);
+  atualizarUI(indice, explicacao);
+  salvarHistorico(indice);
+  gerarPrevisao();
+  renderHistorico();
 }
 
-function calcularIndice(climaData){
-
-const hora=new Date().getHours();
-const dia=new Date().getDay();
-
-let indice=30;
-
-const temp=climaData.current_weather.temperature;
-const vento=climaData.current_weather.windspeed;
-
-if(hora>=12&&hora<=14) indice+=20;
-if(hora>=17&&hora<=19) indice+=25;
-if(dia==0||dia==6) indice+=15;
-if(temp>30) indice+=15;
-if(vento>25) indice+=10;
-
-const comunidade=getMediaComunidade();
-indice+=comunidade*0.3;
-
-indice=Math.max(0,Math.min(100,indice));
-
-atualizarUI(indice,temp,vento);
-salvarHistorico(indice);
-gerarPrevisao(climaData);
-renderHistorico();
+// IA simulada
+function gerarIndiceIA(local){
+  let hash=0;
+  for(let i=0;i<local.length;i++) hash+=local.charCodeAt(i);
+  const base=(hash%50)+30;
+  return Math.min(100, base + Math.floor(Math.random()*30));
+}
+function gerarExplicacaoIA(local,indice){
+  if(indice<=40) return `O ambiente em ${local} tende a ser confortável para neurodivergentes.`;
+  if(indice<=65) return `O ambiente em ${local} pode apresentar estímulos moderados.`;
+  if(indice<=85) return `O ambiente em ${local} possui potencial de desconforto sensorial.`;
+  return `Atenção! ${local} apresenta alto risco sensorial neste horário.`;
 }
 
-function atualizarUI(indice,temp,vento){
+// Atualiza UI
+function atualizarUI(indice, explicacao){
+  document.getElementById("indiceValor").innerText=Math.round(indice);
+  const offset=circ-(indice/100)*circ;
+  const circle=document.getElementById("progressCircle");
+  let cor="#22c55e", status="Ambiente confortável";
 
-document.getElementById("indiceValor").innerText=Math.round(indice);
-const offset=circ-(indice/100)*circ;
-const circle=document.getElementById("progressCircle");
-circle.style.strokeDashoffset=offset;
+  if(indice>40){cor="#eab308"; status="Atenção moderada";}
+  if(indice>65){cor="#f97316"; status="Planejamento recomendado";}
+  if(indice>85){cor="#ef4444"; status="Alto risco sensorial";}
 
-let cor="#22c55e";
-let status="Ambiente confortável";
+  circle.style.stroke=cor;
+  circle.style.filter=`drop-shadow(0 0 20px ${cor})`;
+  circle.style.strokeDashoffset=offset;
 
-if(indice>40){cor="#eab308";status="Atenção moderada";}
-if(indice>65){cor="#f97316";status="Planejamento recomendado";}
-if(indice>85){cor="#ef4444";status="Alto risco sensorial";}
+  // Heatmap
+  document.getElementById("heatIndicator").style.width=indice+"%";
 
-circle.style.stroke=cor;
-circle.style.filter=`drop-shadow(0 0 15px ${cor})`;
-
-document.getElementById("statusTexto").innerText=status;
-document.getElementById("explicacao").innerText=`Temperatura ${temp}°C • Vento ${vento} km/h`;
+  document.getElementById("statusTexto").innerText=status;
+  document.getElementById("explicacao").innerText=explicacao;
 }
 
+// Histórico local
 function salvarHistorico(valor){
-let hist=JSON.parse(localStorage.getItem("hist_"+localAtual))||[];
-hist.push({data:new Date().toLocaleTimeString(),valor});
-localStorage.setItem("hist_"+localAtual,JSON.stringify(hist));
+  let hist=JSON.parse(localStorage.getItem("hist_"+localAtual))||[];
+  hist.push({data:new Date().toLocaleTimeString(),valor});
+  localStorage.setItem("hist_"+localAtual,JSON.stringify(hist));
 }
 
+// Renderiza gráfico histórico
 function renderHistorico(){
-let hist=JSON.parse(localStorage.getItem("hist_"+localAtual))||[];
-const labels=hist.map(h=>h.data);
-const valores=hist.map(h=>h.valor);
+  let hist=JSON.parse(localStorage.getItem("hist_"+localAtual))||[];
+  const labels=hist.map(h=>h.data);
+  const valores=hist.map(h=>h.valor);
 
-if(historyChart) historyChart.destroy();
+  if(historyChart) historyChart.destroy();
 
-historyChart=new Chart(document.getElementById("historyChart"),{
-type:'line',
-data:{labels,datasets:[{label:'Índice',data:valores,borderColor:'#6366f1'}]},
-options:{responsive:true}
-});
+  historyChart=new Chart(document.getElementById("historyChart"),{
+    type:'line',
+    data:{labels,datasets:[{label:'Índice',data:valores,borderColor:'#6366f1',tension:0.3,fill:true,backgroundColor:'rgba(99,102,241,0.2)'}]},
+    options:{responsive:true}
+  });
 
-const media=getMediaComunidade();
-document.getElementById("mediaComunitaria").innerText="Média comunidade: "+Math.round(media);
+  const media=getMediaComunidade();
+  document.getElementById("mediaComunitaria").innerText="Média comunidade: "+Math.round(media);
 }
 
-function gerarPrevisao(climaData){
-const temps=climaData.hourly.temperature_2m.slice(0,6);
-const labels=["+1h","+2h","+3h","+4h","+5h","+6h"];
+// Previsão pseudo IA
+function gerarPrevisao(){
+  const labels=["+1h","+2h","+3h","+4h","+5h","+6h"];
+  const previsao=labels.map(()=>Math.floor(Math.random()*50+30));
 
-const previsao=temps.map(t=>{
-let base=30;
-if(t>30) base+=15;
-return base;
-});
+  if(forecastChart) forecastChart.destroy();
 
-if(forecastChart) forecastChart.destroy();
-
-forecastChart=new Chart(document.getElementById("forecastChart"),{
-type:'line',
-data:{labels,datasets:[{label:'Previsão',data:previsao,borderColor:'#22d3ee'}]},
-options:{responsive:true}
-});
+  forecastChart=new Chart(document.getElementById("forecastChart"),{
+    type:'line',
+    data:{labels,datasets:[{label:'Previsão',data:previsao,borderColor:'#22d3ee',tension:0.3,fill:true,backgroundColor:'rgba(34,211,238,0.2)'}]},
+    options:{responsive:true}
+  });
 }
 
-function avaliar(valor){
-let dados=JSON.parse(localStorage.getItem("com_"+localAtual))||[];
-dados.push(valor);
-localStorage.setItem("com_"+localAtual,JSON.stringify(dados));
-renderHistorico();
+// Avaliação da comunidade
+function avaliarLocal(valor){
+  let dados=JSON.parse(localStorage.getItem("com_"+localAtual))||[];
+  dados.push(valor);
+  localStorage.setItem("com_"+localAtual,JSON.stringify(dados));
+  renderHistorico();
 }
 
 function getMediaComunidade(){
-let dados=JSON.parse(localStorage.getItem("com_"+localAtual))||[];
-if(!dados.length) return 0;
-return dados.reduce((a,b)=>a+b)/dados.length;
+  let dados=JSON.parse(localStorage.getItem("com_"+localAtual))||[];
+  if(!dados.length) return 0;
+  return dados.reduce((a,b)=>a+b)/dados.length;
 }
-
 </script>
+
 </body>
 </html>
