@@ -8,10 +8,9 @@
 <style>
 body{
     margin:0;
-    font-family: 'Segoe UI', sans-serif;
-    background: radial-gradient(circle at top, #0f172a, #020617);
+    font-family:'Segoe UI',sans-serif;
+    background:radial-gradient(circle at top,#0f172a,#020617);
     color:#e2e8f0;
-    overflow-x:hidden;
 }
 
 .container{
@@ -22,36 +21,27 @@ body{
 
 h1{
     text-align:center;
-    font-weight:600;
     font-size:32px;
-    letter-spacing:1px;
-    background: linear-gradient(90deg,#38bdf8,#6366f1);
+    background:linear-gradient(90deg,#38bdf8,#6366f1);
     -webkit-background-clip:text;
     -webkit-text-fill-color:transparent;
 }
 
 .card{
-    background: rgba(30,41,59,0.6);
-    backdrop-filter: blur(12px);
-    border:1px solid rgba(255,255,255,0.05);
+    background:rgba(30,41,59,0.6);
+    backdrop-filter:blur(12px);
     border-radius:20px;
     padding:20px;
     margin-top:20px;
-    box-shadow: 0 0 30px rgba(0,0,0,0.4);
-    transition:0.4s;
-}
-
-.card:hover{
-    transform: translateY(-3px);
 }
 
 input,button{
     width:100%;
-    padding:12px;
+    padding:10px;
+    margin-top:10px;
     border-radius:12px;
     border:none;
-    margin-top:10px;
-    font-size:15px;
+    font-size:14px;
 }
 
 input{
@@ -70,21 +60,18 @@ button:hover{
     opacity:0.85;
 }
 
-/* Medidor circular */
 .gauge{
-    width:220px;
-    height:220px;
+    width:240px;
+    height:240px;
     margin:auto;
     position:relative;
 }
 
-svg{
-    transform:rotate(-90deg);
-}
+svg{ transform:rotate(-90deg); }
 
 circle{
     fill:none;
-    stroke-width:15;
+    stroke-width:16;
     stroke-linecap:round;
 }
 
@@ -93,7 +80,6 @@ circle{
     stroke-dasharray:565;
     stroke-dashoffset:565;
     transition:1s ease;
-    filter: drop-shadow(0 0 12px #22d3ee);
 }
 
 .centerText{
@@ -105,121 +91,119 @@ circle{
 }
 
 .centerText h2{
-    font-size:38px;
+    font-size:42px;
     margin:0;
 }
 
-.dimensions{
-    display:grid;
-    grid-template-columns:1fr 1fr 1fr;
-    gap:15px;
-    margin-top:20px;
-}
-
-.dimension{
-    background:#0f172a;
-    padding:15px;
-    border-radius:15px;
+.status{
     text-align:center;
-}
-
-.bar{
-    height:8px;
-    border-radius:8px;
-    background:#1e293b;
-    margin-top:8px;
-    overflow:hidden;
-}
-
-.bar-inner{
-    height:100%;
-    width:0%;
-    background:#38bdf8;
-    transition:0.6s;
-}
-
-.community input{
-    margin-top:6px;
+    margin-top:15px;
+    font-weight:500;
 }
 
 .small{
     font-size:13px;
     opacity:0.7;
+    text-align:center;
+}
+
+.feedback-buttons button{
     margin-top:8px;
 }
 </style>
 </head>
 
 <body>
-
 <div class="container">
 
 <h1>CalmPath</h1>
 
+<!-- PERFIL -->
+<div id="perfilCard" class="card" style="display:none;">
+<h3>Configure seu Perfil Sensorial</h3>
+
+<label>Sensibilidade a Ruído (0-10)</label>
+<input type="number" id="pRuido" min="0" max="10">
+
+<label>Sensibilidade à Luz (0-10)</label>
+<input type="number" id="pLuz" min="0" max="10">
+
+<label>Sensibilidade a Movimento (0-10)</label>
+<input type="number" id="pMov" min="0" max="10">
+
+<button onclick="salvarPerfil()">Salvar Perfil</button>
+</div>
+
+<!-- APP -->
+<div id="app" style="display:none;">
+
 <div class="card">
-<input type="text" id="localInput" placeholder="Digite o local (ex: Shopping Central)">
+<input type="text" id="localInput" placeholder="Digite o local">
 <button onclick="buscarLocal()">Analisar Ambiente</button>
 </div>
 
-<div id="dashboard" style="display:none;">
-
-<div class="card">
+<div id="dashboard" class="card" style="display:none;">
 
 <div class="gauge">
-<svg width="220" height="220">
-<circle cx="110" cy="110" r="90" stroke="#1e293b"/>
-<circle id="progressCircle" cx="110" cy="110" r="90"/>
+<svg width="240" height="240">
+<circle cx="120" cy="120" r="90" stroke="#1e293b"/>
+<circle id="progressCircle" cx="120" cy="120" r="90"/>
 </svg>
 <div class="centerText">
 <h2 id="indiceValor">0</h2>
-<p>Índice Sensorial</p>
+<p>Índice Personalizado</p>
 </div>
 </div>
 
-<p id="statusTexto" style="text-align:center;margin-top:15px;"></p>
-<p id="fonteTexto" class="small" style="text-align:center;"></p>
+<div class="status" id="statusTexto"></div>
+<p class="small">IA adaptativa baseada no seu perfil e histórico</p>
 
-<div class="dimensions">
-<div class="dimension">
-🔊 Ruído
-<div class="bar"><div id="barRuido" class="bar-inner"></div></div>
-</div>
-<div class="dimension">
-💡 Luz
-<div class="bar"><div id="barLuz" class="bar-inner"></div></div>
-</div>
-<div class="dimension">
-👥 Movimento
-<div class="bar"><div id="barMov" class="bar-inner"></div></div>
-</div>
+<h3>Como foi sua experiência?</h3>
+<div class="feedback-buttons">
+<button onclick="feedback(1)">👍 Confortável</button>
+<button onclick="feedback(0)">😐 Moderado</button>
+<button onclick="feedback(-1)">😣 Difícil</button>
 </div>
 
 </div>
-
-<div class="card community">
-<h3>Atualizar pela Comunidade</h3>
-<label>Ruído (0-100)</label>
-<input type="number" id="cRuido" min="0" max="100">
-<label>Luz (0-100)</label>
-<input type="number" id="cLuz" min="0" max="100">
-<label>Movimento (0-100)</label>
-<input type="number" id="cMov" min="0" max="100">
-<button onclick="enviarComunitario()">Enviar Atualização</button>
-<p id="confirma" class="small"></p>
-</div>
-
 </div>
 
 </div>
 
 <script>
 
+let perfil = JSON.parse(localStorage.getItem("perfilCalmPath"));
+let memoriaLocais = JSON.parse(localStorage.getItem("memoriaCalmPath")) || {};
 let localAtual="";
-const circ = 2*Math.PI*90;
+let ultimaLeitura=null;
+
+const circ=2*Math.PI*90;
+
+if(!perfil){
+    document.getElementById("perfilCard").style.display="block";
+}else{
+    iniciarApp();
+}
+
+function salvarPerfil(){
+    perfil={
+        ruido:Number(document.getElementById("pRuido").value)||5,
+        luz:Number(document.getElementById("pLuz").value)||5,
+        mov:Number(document.getElementById("pMov").value)||5
+    };
+    localStorage.setItem("perfilCalmPath",JSON.stringify(perfil));
+    iniciarApp();
+}
+
+function iniciarApp(){
+    document.getElementById("perfilCard").style.display="none";
+    document.getElementById("app").style.display="block";
+}
 
 function buscarLocal(){
     const nome=document.getElementById("localInput").value.trim();
     if(!nome) return;
+
     localAtual=nome;
     document.getElementById("dashboard").style.display="block";
     calcularIndice();
@@ -230,78 +214,100 @@ function calcularIndice(){
     const hora=new Date().getHours();
     const dia=new Date().getDay();
 
-    let ruido=30;
-    let luz=30;
-    let movimento=30;
+    let ruido=30,luz=30,mov=30;
 
-    if(hora>=12 && hora<=14){ ruido+=25; movimento+=30; }
-    if(hora>=17 && hora<=19){ movimento+=35; }
-    if(dia==6 || dia==0){ movimento+=20; }
+    if(hora>=12 && hora<=14){ ruido+=25; mov+=30; }
+    if(hora>=17 && hora<=19){ mov+=35; }
+    if(dia==0 || dia==6){ mov+=20; }
 
-    let comunidade=JSON.parse(localStorage.getItem("com_"+localAtual));
-    let fonte="Previsão inteligente";
-
-    if(comunidade){
-        let minutos=(Date.now()-comunidade.timestamp)/60000;
-        if(minutos<60){
-            ruido=Math.round((ruido+comunidade.ruido)/2);
-            luz=Math.round((luz+comunidade.luz)/2);
-            movimento=Math.round((movimento+comunidade.mov)/2);
-            fonte="Atualizado pela comunidade há "+Math.round(minutos)+" min";
-        }
+    if(memoriaLocais[localAtual]){
+        ruido+=memoriaLocais[localAtual].ruidoAjuste||0;
+        luz+=memoriaLocais[localAtual].luzAjuste||0;
+        mov+=memoriaLocais[localAtual].movAjuste||0;
     }
 
-    ruido=Math.min(100,ruido);
-    luz=Math.min(100,luz);
-    movimento=Math.min(100,movimento);
+    ruido=Math.max(0,Math.min(100,ruido));
+    luz=Math.max(0,Math.min(100,luz));
+    mov=Math.max(0,Math.min(100,mov));
 
-    let indice=Math.round((ruido+luz+movimento)/3);
+    ultimaLeitura={ruido,luz,mov};
 
-    atualizarUI(indice,ruido,luz,movimento);
-    document.getElementById("fonteTexto").innerText=fonte;
+    const somaPesos=perfil.ruido+perfil.luz+perfil.mov;
+
+    const indice=Math.round(
+        (ruido*perfil.ruido +
+         luz*perfil.luz +
+         mov*perfil.mov) / somaPesos
+    );
+
+    atualizarUI(indice);
 }
 
-function atualizarUI(indice,ruido,luz,movimento){
+function atualizarUI(indice){
 
     document.getElementById("indiceValor").innerText=indice;
 
-    let offset=circ-(indice/100)*circ;
+    const offset=circ-(indice/100)*circ;
     document.getElementById("progressCircle").style.strokeDashoffset=offset;
 
     let cor="#22d3ee";
-    if(indice>60) cor="#f97316";
-    if(indice>80) cor="#ef4444";
+    let status="Ambiente confortável";
+
+    if(indice>60){
+        cor="#f97316";
+        status="Planejamento recomendado";
+    }
+    if(indice>80){
+        cor="#ef4444";
+        status="Alto risco sensorial";
+    }
 
     document.getElementById("progressCircle").style.stroke=cor;
     document.getElementById("progressCircle").style.filter="drop-shadow(0 0 15px "+cor+")";
-
-    document.getElementById("barRuido").style.width=ruido+"%";
-    document.getElementById("barLuz").style.width=luz+"%";
-    document.getElementById("barMov").style.width=movimento+"%";
-
-    let status="Ambiente equilibrado";
-    if(indice>60) status="Planejamento recomendado";
-    if(indice>80) status="Alto risco sensorial";
-
     document.getElementById("statusTexto").innerText=status;
 }
 
-function enviarComunitario(){
+function feedback(tipo){
 
-    if(!localAtual) return;
+    if(!ultimaLeitura) return;
 
-    const ruido=Number(document.getElementById("cRuido").value)||0;
-    const luz=Number(document.getElementById("cLuz").value)||0;
-    const mov=Number(document.getElementById("cMov").value)||0;
+    const {ruido,luz,mov}=ultimaLeitura;
 
-    const dados={
-        ruido,luz,mov,
-        timestamp:Date.now()
-    };
+    let dominante="ruido";
+    let maior=ruido;
 
-    localStorage.setItem("com_"+localAtual,JSON.stringify(dados));
-    document.getElementById("confirma").innerText="Atualização enviada com sucesso.";
+    if(luz>maior){ dominante="luz"; maior=luz; }
+    if(mov>maior){ dominante="mov"; maior=mov; }
+
+    if(tipo==-1){
+        perfil[dominante]+=0.5;
+        ajustarMemoria(dominante,3);
+    }
+
+    if(tipo==1){
+        perfil[dominante]=Math.max(1,perfil[dominante]-0.3);
+        ajustarMemoria(dominante,-2);
+    }
+
+    localStorage.setItem("perfilCalmPath",JSON.stringify(perfil));
+    localStorage.setItem("memoriaCalmPath",JSON.stringify(memoriaLocais));
+
     calcularIndice();
+}
+
+function ajustarMemoria(dim,valor){
+
+    if(!memoriaLocais[localAtual]){
+        memoriaLocais[localAtual]={
+            ruidoAjuste:0,
+            luzAjuste:0,
+            movAjuste:0
+        };
+    }
+
+    if(dim==="ruido") memoriaLocais[localAtual].ruidoAjuste+=valor;
+    if(dim==="luz") memoriaLocais[localAtual].luzAjuste+=valor;
+    if(dim==="mov") memoriaLocais[localAtual].movAjuste+=valor;
 }
 
 </script>
