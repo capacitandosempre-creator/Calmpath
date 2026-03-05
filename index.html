@@ -1,237 +1,257 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
+
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CalmPath - Experiência Sensorial Avançada</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>CalmPath</title>
+
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 <style>
-/* === Global === */
-body {
-  margin:0;
-  font-family:'Segoe UI',sans-serif;
-  background: radial-gradient(circle at top,#0f172a,#020617);
-  color:#e2e8f0;
+
+body{
+margin:0;
+font-family:Segoe UI;
+background:#0f172a;
+color:white;
 }
-.container { max-width:1000px;margin:auto;padding:20px; }
-h1 {
-  text-align:center;font-size:40px;
-  background:linear-gradient(90deg,#38bdf8,#6366f1);
-  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+
+header{
+background:#020617;
+padding:20px;
+text-align:center;
 }
-.card {
-  background:rgba(30,41,59,0.7);
-  backdrop-filter:blur(15px);
-  border-radius:25px;
-  padding:25px;
-  margin-top:20px;
-  box-shadow:0 0 40px rgba(0,0,0,0.5);
-  transition: transform 0.3s;
+
+h1{
+color:#38bdf8;
 }
-.card:hover { transform:scale(1.02); }
-input,button {
-  width:100%;padding:14px;margin-top:10px;
-  border-radius:14px;border:none;font-size:16px;
+
+.container{
+max-width:1000px;
+margin:auto;
+padding:20px;
 }
-input { background:#1e293b;color:white; }
-button {
-  background:linear-gradient(90deg,#6366f1,#3b82f6);
-  color:white;cursor:pointer;transition:0.3s;
+
+.card{
+background:#1e293b;
+padding:20px;
+border-radius:16px;
+margin-top:20px;
 }
-button:hover { transform:scale(1.05); }
-/* === Gauge === */
-.gauge { width:260px;height:260px;margin:auto;position:relative; }
-svg { transform:rotate(-90deg); }
-circle { fill:none;stroke-width:18;stroke-linecap:round; transition:1s; }
-#progressCircle { stroke:#22c55e; stroke-dasharray:565; stroke-dashoffset:565; filter:drop-shadow(0 0 15px #22c55e); }
-.centerText {
-  position:absolute;top:50%;left:50%;
-  transform:translate(-50%,-50%);
-  text-align:center;
+
+input,button,select{
+width:100%;
+padding:12px;
+margin-top:10px;
+border:none;
+border-radius:10px;
 }
-.centerText h2 { font-size:48px;margin:0; animation:fadeInUp 1s ease forwards; }
-.centerText p { font-size:14px; opacity:0.7; }
-/* === Animations === */
-@keyframes fadeInUp { from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);} }
-/* === Rows === */
-.row { display:flex;gap:20px;flex-wrap:wrap; margin-top:20px; }
-.col { flex:1;min-width:320px; }
-/* === Feedback Buttons === */
-.feedback button { margin-top:8px; background:#3b82f6; color:white; border-radius:12px; transition:0.2s; }
-.feedback button:hover { transform:scale(1.05); background:#6366f1; }
-/* === Heatmap style === */
-.heatmap { width:100%;height:200px;background:linear-gradient(90deg, #22c55e, #facc15, #f97316, #ef4444); border-radius:14px; position:relative; margin-top:10px; overflow:hidden; }
-.heat-indicator { height:100%; width:0%; background:rgba(255,255,255,0.2); border-radius:14px; position:absolute; top:0; left:0; transition:width 1s; }
+
+button{
+background:#3b82f6;
+color:white;
+cursor:pointer;
+}
+
+button:hover{
+background:#6366f1;
+}
+
+.ranking{
+margin-top:10px;
+}
+
+.rank-item{
+padding:8px;
+border-bottom:1px solid #334155;
+}
+
+canvas{
+background:#020617;
+border-radius:10px;
+padding:10px;
+}
+
 </style>
+
 </head>
+
 <body>
+
+<header>
+
+<h1>CalmPath</h1>
+<p>Mapa sensorial para pessoas neurodivergentes</p>
+
+</header>
 
 <div class="container">
 
-<h1>CalmPath</h1>
+<div class="card">
+
+<h3>Login</h3>
+
+<input id="email" placeholder="Seu email">
+
+<button onclick="login()">Entrar</button>
+
+<p id="statusLogin"></p>
+
+</div>
 
 <div class="card">
-  <input type="text" id="localInput" placeholder="Digite o local (ex: Shopping, Parque)">
-  <button onclick="analisarLocal()">Analisar experiência sensorial</button>
+
+<h3>Perfil sensorial</h3>
+
+<select id="perfil">
+
+<option value="luz">Sensível à luz</option>
+<option value="som">Sensível a barulho</option>
+<option value="multidao">Sensível à multidão</option>
+
+</select>
+
+<button onclick="salvarPerfil()">Salvar perfil</button>
+
 </div>
 
-<div id="dashboard" style="display:none;">
+<div class="card">
 
-  <!-- Índice Sensorial -->
-  <div class="card">
-    <div class="gauge">
-      <svg width="260" height="260">
-        <circle cx="130" cy="130" r="90" stroke="#1e293b"/>
-        <circle id="progressCircle" cx="130" cy="130" r="90"/>
-      </svg>
-      <div class="centerText">
-        <h2 id="indiceValor">0</h2>
-        <p>Índice de Desconforto</p>
-      </div>
-    </div>
-    <div class="status" id="statusTexto"></div>
-    <div class="heatmap">
-      <div id="heatIndicator" class="heat-indicator"></div>
-    </div>
-    <p id="explicacao" style="text-align:center;opacity:0.8;margin-top:5px;"></p>
-  </div>
+<h3>Analisar ambiente</h3>
 
-  <div class="row">
-    <!-- Previsão -->
-    <div class="card col">
-      <h3>Previsão próximas horas</h3>
-      <canvas id="forecastChart"></canvas>
-    </div>
+<input id="local" placeholder="Digite um local">
 
-    <!-- Histórico + Comunidade -->
-    <div class="card col">
-      <h3>Histórico do Local</h3>
-      <canvas id="historyChart"></canvas>
+<button onclick="analisar()">Analisar</button>
 
-      <h3 style="margin-top:20px;">Avaliação da Comunidade</h3>
-      <div class="feedback">
-        <button onclick="avaliarLocal(20)">🙂 Confortável</button>
-        <button onclick="avaliarLocal(50)">😐 Moderado</button>
-        <button onclick="avaliarLocal(85)">😣 Difícil</button>
-      </div>
-      <p id="mediaComunitaria" style="margin-top:10px;"></p>
-    </div>
-  </div>
+<h2 id="resultado"></h2>
+
+<canvas id="grafico"></canvas>
+
 </div>
+
+<div class="card">
+
+<h3>Ranking lugares mais seguros</h3>
+
+<div id="ranking"></div>
+
+</div>
+
 </div>
 
 <script>
-const circ=2*Math.PI*90;
-let localAtual="";
-let historyChart, forecastChart;
 
-// Função principal
-async function analisarLocal(){
-  const nome=document.getElementById("localInput").value.trim();
-  if(!nome) return;
-  localAtual=nome;
-  document.getElementById("dashboard").style.display="block";
-  document.getElementById("statusTexto").innerText="Calculando experiência...";
+let chart
 
-  // Simulação de IA
-  const indice=gerarIndiceIA(nome);
-  const explicacao=gerarExplicacaoIA(nome,indice);
+function login(){
 
-  atualizarUI(indice, explicacao);
-  salvarHistorico(indice);
-  gerarPrevisao();
-  renderHistorico();
+let email=document.getElementById("email").value
+
+localStorage.setItem("user",email)
+
+document.getElementById("statusLogin").innerText="Logado como "+email
+
 }
 
-// IA simulada
-function gerarIndiceIA(local){
-  let hash=0;
-  for(let i=0;i<local.length;i++) hash+=local.charCodeAt(i);
-  const base=(hash%50)+30;
-  return Math.min(100, base + Math.floor(Math.random()*30));
-}
-function gerarExplicacaoIA(local,indice){
-  if(indice<=40) return `O ambiente em ${local} tende a ser confortável para neurodivergentes.`;
-  if(indice<=65) return `O ambiente em ${local} pode apresentar estímulos moderados.`;
-  if(indice<=85) return `O ambiente em ${local} possui potencial de desconforto sensorial.`;
-  return `Atenção! ${local} apresenta alto risco sensorial neste horário.`;
+function salvarPerfil(){
+
+let perfil=document.getElementById("perfil").value
+
+localStorage.setItem("perfilSensorial",perfil)
+
+alert("Perfil salvo")
+
 }
 
-// Atualiza UI
-function atualizarUI(indice, explicacao){
-  document.getElementById("indiceValor").innerText=Math.round(indice);
-  const offset=circ-(indice/100)*circ;
-  const circle=document.getElementById("progressCircle");
-  let cor="#22c55e", status="Ambiente confortável";
+function analisar(){
 
-  if(indice>40){cor="#eab308"; status="Atenção moderada";}
-  if(indice>65){cor="#f97316"; status="Planejamento recomendado";}
-  if(indice>85){cor="#ef4444"; status="Alto risco sensorial";}
+let local=document.getElementById("local").value
 
-  circle.style.stroke=cor;
-  circle.style.filter=`drop-shadow(0 0 20px ${cor})`;
-  circle.style.strokeDashoffset=offset;
+if(!local)return
 
-  // Heatmap
-  document.getElementById("heatIndicator").style.width=indice+"%";
+let indice=Math.floor(Math.random()*100)
 
-  document.getElementById("statusTexto").innerText=status;
-  document.getElementById("explicacao").innerText=explicacao;
+let texto=""
+
+if(indice<40) texto="Ambiente confortável"
+
+else if(indice<70) texto="Estímulo moderado"
+
+else texto="Alto estímulo sensorial"
+
+document.getElementById("resultado").innerText=local+" → "+texto+" ("+indice+")"
+
+salvarRanking(local,indice)
+
+gerarGrafico(indice)
+
 }
 
-// Histórico local
-function salvarHistorico(valor){
-  let hist=JSON.parse(localStorage.getItem("hist_"+localAtual))||[];
-  hist.push({data:new Date().toLocaleTimeString(),valor});
-  localStorage.setItem("hist_"+localAtual,JSON.stringify(hist));
+function gerarGrafico(valor){
+
+let dados=[valor,valor+10,valor-5,valor+15,valor-10]
+
+let labels=["Agora","+1h","+2h","+3h","+4h"]
+
+if(chart) chart.destroy()
+
+chart=new Chart(document.getElementById("grafico"),{
+
+type:'line',
+
+data:{
+labels:labels,
+datasets:[{
+label:"Previsão sensorial",
+data:dados,
+borderColor:"#38bdf8",
+fill:false
+}]
+},
+
+options:{responsive:true}
+
+})
+
 }
 
-// Renderiza gráfico histórico
-function renderHistorico(){
-  let hist=JSON.parse(localStorage.getItem("hist_"+localAtual))||[];
-  const labels=hist.map(h=>h.data);
-  const valores=hist.map(h=>h.valor);
+function salvarRanking(local,indice){
 
-  if(historyChart) historyChart.destroy();
+let dados=JSON.parse(localStorage.getItem("ranking"))||[]
 
-  historyChart=new Chart(document.getElementById("historyChart"),{
-    type:'line',
-    data:{labels,datasets:[{label:'Índice',data:valores,borderColor:'#6366f1',tension:0.3,fill:true,backgroundColor:'rgba(99,102,241,0.2)'}]},
-    options:{responsive:true}
-  });
+dados.push({local,indice})
 
-  const media=getMediaComunidade();
-  document.getElementById("mediaComunitaria").innerText="Média comunidade: "+Math.round(media);
+localStorage.setItem("ranking",JSON.stringify(dados))
+
+renderRanking()
+
 }
 
-// Previsão pseudo IA
-function gerarPrevisao(){
-  const labels=["+1h","+2h","+3h","+4h","+5h","+6h"];
-  const previsao=labels.map(()=>Math.floor(Math.random()*50+30));
+function renderRanking(){
 
-  if(forecastChart) forecastChart.destroy();
+let dados=JSON.parse(localStorage.getItem("ranking"))||[]
 
-  forecastChart=new Chart(document.getElementById("forecastChart"),{
-    type:'line',
-    data:{labels,datasets:[{label:'Previsão',data:previsao,borderColor:'#22d3ee',tension:0.3,fill:true,backgroundColor:'rgba(34,211,238,0.2)'}]},
-    options:{responsive:true}
-  });
+dados.sort((a,b)=>a.indice-b.indice)
+
+let html=""
+
+dados.slice(0,5).forEach(d=>{
+
+html+=`<div class="rank-item">${d.local} - índice ${d.indice}</div>`
+
+})
+
+document.getElementById("ranking").innerHTML=html
+
 }
 
-// Avaliação da comunidade
-function avaliarLocal(valor){
-  let dados=JSON.parse(localStorage.getItem("com_"+localAtual))||[];
-  dados.push(valor);
-  localStorage.setItem("com_"+localAtual,JSON.stringify(dados));
-  renderHistorico();
-}
+renderRanking()
 
-function getMediaComunidade(){
-  let dados=JSON.parse(localStorage.getItem("com_"+localAtual))||[];
-  if(!dados.length) return 0;
-  return dados.reduce((a,b)=>a+b)/dados.length;
-}
 </script>
 
 </body>
+
 </html>
